@@ -18,7 +18,10 @@
       "Bash(git commit:*)",
       "Bash(git init:*)",
       "Bash(git branch:*)",
-      "Bash(git remote add:*)"
+      "Bash(git remote add:*)",
+      "Bash(git remote get-url:*)",
+      "Bash(gh repo view:*)",
+      "Bash(netlify:*)"
     ],
     "deny": [],
     "ask": []
