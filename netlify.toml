@@ -1,6 +1,6 @@
 [build]
-  publish = "dist"
-  command = "npm install --legacy-peer-deps && npm run build:web"
+  publish = "public"
+  command = "echo 'Simple static site - no build needed'"
 
 [build.environment]
   NODE_VERSION = "18"
