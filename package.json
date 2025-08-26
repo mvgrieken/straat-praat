@@ -11,7 +11,7 @@
     "build": "eas build",
     "build:android": "eas build --platform android",
     "build:ios": "eas build --platform ios",
-    "build:web": "mkdir -p dist && echo '<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Straat-Praat - Leer Nederlandse Slang</title><style>body{font-family:system-ui;margin:0;padding:2rem;background:#f3f4f6;color:#111827}h1{color:#0ea5e9}</style></head><body><h1>🗣️ Straat-Praat</h1><p>Een React Native app voor ouders om jongerenslang te leren.</p><h2>✨ Features:</h2><ul><li>📖 Vertaalfunctie (Slang ↔ Nederlands)</li><li>🎤 Spraakherkenning</li><li>🎮 Interactieve quizzes</li><li>🔥 Streak systeem</li><li>👤 Persoonlijk profiel</li></ul><p><strong>Download de app binnenkort in de App Store en Google Play!</strong></p><hr><p><small>Gebouwd met React Native, Expo, en Supabase</small></p></body></html>' > dist/index.html",
+    "build:web": "mkdir -p dist && cp public/index.html dist/",
     "test": "jest",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
