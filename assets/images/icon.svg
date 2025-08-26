@@ -1,0 +1,26 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="512" cy="512" r="512" fill="#0ea5e9"/>
+  
+  <!-- Speech bubble -->
+  <path d="M256 256 C256 200 300 144 356 144 L668 144 C724 144 768 200 768 256 L768 456 C768 512 724 568 668 568 L400 568 L256 668 Z" fill="white" opacity="0.95"/>
+  
+  <!-- Inner speech bubble shadow -->
+  <path d="M276 276 C276 220 320 164 376 164 L688 164 C744 164 788 220 788 276 L788 476 C788 532 744 588 688 588 L420 588 L276 688 Z" fill="#f1f5f9" opacity="0.6"/>
+  
+  <!-- SP Letters -->
+  <text x="512" y="420" font-family="Arial, sans-serif" font-size="180" font-weight="bold" text-anchor="middle" fill="#0ea5e9">SP</text>
+  
+  <!-- Small decorative dots for language/communication theme -->
+  <circle cx="350" cy="320" r="8" fill="#0ea5e9" opacity="0.4"/>
+  <circle cx="390" cy="310" r="6" fill="#0ea5e9" opacity="0.3"/>
+  <circle cx="430" cy="315" r="7" fill="#0ea5e9" opacity="0.35"/>
+  
+  <!-- Right side dots -->
+  <circle cx="674" cy="320" r="8" fill="#0ea5e9" opacity="0.4"/>
+  <circle cx="634" cy="310" r="6" fill="#0ea5e9" opacity="0.3"/>
+  <circle cx="594" cy="315" r="7" fill="#0ea5e9" opacity="0.35"/>
+  
+  <!-- Bottom accent line -->
+  <rect x="356" y="520" width="312" height="4" rx="2" fill="#0ea5e9" opacity="0.6"/>
+</svg>

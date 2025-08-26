@@ -1,0 +1,25 @@
+<svg width="432" height="432" viewBox="0 0 432 432" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background for adaptive icon (will be masked) -->
+  <rect width="432" height="432" fill="#0ea5e9"/>
+  
+  <!-- Speech bubble centered and sized for adaptive icon -->
+  <path d="M108 108 C108 75 135 42 168 42 L324 42 C357 42 384 75 384 108 L384 216 C384 249 357 282 324 282 L192 282 L108 336 Z" fill="white" opacity="0.95"/>
+  
+  <!-- Inner shadow -->
+  <path d="M118 118 C118 85 145 52 178 52 L334 52 C367 52 394 85 394 118 L394 226 C394 259 367 292 334 292 L202 292 L118 346 Z" fill="#f8fafc" opacity="0.7"/>
+  
+  <!-- SP Letters -->
+  <text x="246" y="190" font-family="Arial, sans-serif" font-size="80" font-weight="bold" text-anchor="middle" fill="#0ea5e9">SP</text>
+  
+  <!-- Small decorative elements -->
+  <circle cx="160" cy="140" r="4" fill="#0ea5e9" opacity="0.4"/>
+  <circle cx="180" cy="135" r="3" fill="#0ea5e9" opacity="0.3"/>
+  <circle cx="200" cy="138" r="3.5" fill="#0ea5e9" opacity="0.35"/>
+  
+  <circle cx="332" cy="140" r="4" fill="#0ea5e9" opacity="0.4"/>
+  <circle cx="312" cy="135" r="3" fill="#0ea5e9" opacity="0.3"/>
+  <circle cx="292" cy="138" r="3.5" fill="#0ea5e9" opacity="0.35"/>
+  
+  <!-- Bottom accent -->
+  <rect x="168" y="250" width="156" height="2" rx="1" fill="#0ea5e9" opacity="0.5"/>
+</svg>

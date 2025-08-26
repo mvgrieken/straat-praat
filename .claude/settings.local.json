@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /ah \"C:\\Users\\MartijnvanGrieken\\dropbox\\apps\\straat-praat\")",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(dir)",
+      "Bash(npx tsc:*)",
+      "Bash(/mcp list)",
+      "Bash(env)",
+      "Bash(npx:*)",
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_35df4b2785a7d2c27b03b68d74191214685afbb0 npx -y @supabase/mcp-server-supabase@latest --read-only --project-ref=trrsgvxoylhcudtiimvb)",
+      "Bash(node:*)",
+      "Bash(git add:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)",
+      "Bash(git commit:*)",
+      "Bash(git init:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

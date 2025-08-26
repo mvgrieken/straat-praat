@@ -1,0 +1,13 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="32" height="32" fill="#0ea5e9" rx="4"/>
+  
+  <!-- Speech bubble simplified for small size -->
+  <path d="M4 6 C4 4.9 4.9 4 6 4 L26 4 C27.1 4 28 4.9 28 6 L28 18 C28 19.1 27.1 20 26 20 L10 20 L4 26 Z" fill="white"/>
+  
+  <!-- SP Letters - smaller and optimized -->
+  <text x="16" y="15" font-family="Arial, sans-serif" font-size="8" font-weight="bold" text-anchor="middle" fill="#0ea5e9">SP</text>
+  
+  <!-- Single accent dot -->
+  <circle cx="16" cy="22" r="0.5" fill="white" opacity="0.7"/>
+</svg>

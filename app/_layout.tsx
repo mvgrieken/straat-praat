@@ -1,0 +1,101 @@
+import { useEffect } from 'react';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as SplashScreen from 'expo-splash-screen';
+import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
+
+import { AuthProvider } from '@/hooks/useAuth';
+import { SettingsProvider } from '@/hooks/useSettings';
+import { useNotifications } from '@/hooks/useNotifications';
+
+import '../global.css';
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
+
+// Configure notifications
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
+// Create React Query client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: Platform.OS === 'web',
+    },
+  },
+});
+
+export default function RootLayout() {
+  const { requestPermissions } = useNotifications();
+
+  useEffect(() => {
+    const setupApp = async () => {
+      try {
+        // Request notification permissions
+        await requestPermissions();
+        
+        // Hide splash screen once everything is loaded
+        await SplashScreen.hideAsync();
+      } catch (error) {
+        console.warn('Error during app setup:', error);
+        await SplashScreen.hideAsync();
+      }
+    };
+
+    setupApp();
+  }, []);
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <SettingsProvider>
+              <Stack>
+                <Stack.Screen 
+                  name="(tabs)" 
+                  options={{ headerShown: false }} 
+                />
+                <Stack.Screen 
+                  name="auth" 
+                  options={{ headerShown: false }} 
+                />
+                <Stack.Screen 
+                  name="onboarding" 
+                  options={{ headerShown: false }} 
+                />
+                <Stack.Screen
+                  name="quiz/[id]"
+                  options={{
+                    title: 'Quiz',
+                    presentation: 'modal',
+                  }}
+                />
+                <Stack.Screen
+                  name="word/[id]"
+                  options={{
+                    title: 'Woorddetails',
+                    presentation: 'modal',
+                  }}
+                />
+              </Stack>
+              <StatusBar style="auto" />
+            </SettingsProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+}
