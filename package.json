@@ -11,7 +11,7 @@
     "build": "eas build",
     "build:android": "eas build --platform android",
     "build:ios": "eas build --platform ios",
-    "build:web": "mkdir -p dist && cp public/index.html dist/",
+    "build:web": "node scripts/build-web.js",
     "test": "jest",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
