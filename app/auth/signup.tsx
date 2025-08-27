@@ -39,13 +39,21 @@ export default function SignupScreen() {
   });
 
   const onSubmit = async (data: SignupFormData) => {
-    if (isLoading) return;
+    console.log('onSubmit called with data:', data);
+    if (isLoading) {
+      console.log('Already loading, returning early');
+      return;
+    }
     
     try {
+      console.log('Setting loading to true');
       setIsLoading(true);
+      console.log('Calling signUp with:', { email: data.email, password: data.password, displayName: data.displayName });
       const result = await signUp(data.email, data.password, data.displayName);
+      console.log('SignUp result:', result);
       
       if (result.user && !result.session) {
+        console.log('Email verification required');
         // Email verification required
         Alert.alert(
           'Bevestig je e-mailadres',
@@ -58,6 +66,7 @@ export default function SignupScreen() {
           ]
         );
       } else {
+        console.log('Direct login, navigating to tabs');
         // Direct login (if email confirmation is disabled)
         router.replace('/(tabs)');
       }
@@ -80,6 +89,7 @@ export default function SignupScreen() {
       
       Alert.alert('Registratie mislukt', errorMessage);
     } finally {
+      console.log('Setting loading to false');
       setIsLoading(false);
     }
   };

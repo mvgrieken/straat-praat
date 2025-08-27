@@ -196,8 +196,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, displayName?: string) => {
+    console.log('useAuth signUp called with:', { email, password: '***', displayName });
     try {
+      console.log('Setting loading to true in useAuth');
       setLoading(true);
+      console.log('Calling supabase.auth.signUp');
       const { data, error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
@@ -207,13 +210,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           },
         },
       });
+      console.log('Supabase signUp response:', { data, error });
 
       if (error) {
+        console.error('Supabase signUp error:', error);
         throw new Error(error.message);
       }
 
+      console.log('SignUp successful, returning data');
       return data;
     } catch (error) {
+      console.error('useAuth signUp catch error:', error);
       setLoading(false);
       throw error;
     }

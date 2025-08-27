@@ -7,6 +7,10 @@ import { validateEnvironment } from '../src/env';
 
 // Validate and get environment variables
 const { supabaseUrl, supabaseAnonKey } = validateEnvironment();
+console.log('Supabase config:', { 
+  supabaseUrl: supabaseUrl.substring(0, 20) + '...', 
+  supabaseAnonKey: supabaseAnonKey.substring(0, 20) + '...' 
+});
 
 // Import platform-specific secure storage adapter
 import StorageAdapter from './storage/secureStoreAdapter';
