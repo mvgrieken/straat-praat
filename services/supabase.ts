@@ -21,6 +21,8 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: Platform.OS === 'web',
+    // Disable email confirmation for development
+    flowType: 'pkce',
   },
 });
 

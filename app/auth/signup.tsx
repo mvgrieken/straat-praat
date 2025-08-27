@@ -21,7 +21,7 @@ import CheckboxField from '@/components/forms/CheckboxField';
 
 export default function SignupScreen() {
   const [isLoading, setIsLoading] = useState(false);
-  const { signUp } = useAuth();
+  const { signUp, signIn } = useAuth();
 
   const {
     control,
@@ -56,6 +56,24 @@ export default function SignupScreen() {
       console.log('SignUp result.user?.email_confirmed_at:', result.user?.email_confirmed_at);
       
       if (result.user && !result.session) {
+        console.log('Email verification required, attempting direct sign in');
+        
+        // Try to sign in directly after registration (for development)
+        try {
+          console.log('Attempting direct sign in...');
+          const signInResult = await signIn(data.email, data.password);
+          console.log('Direct sign in result:', signInResult);
+          
+          if (signInResult.session) {
+            console.log('Direct sign in successful, navigating to tabs');
+            router.replace('/(tabs)');
+            return;
+          }
+        } catch (signInError) {
+          console.log('Direct sign in failed:', signInError);
+          // Fall back to email verification flow
+        }
+        
         console.log('Email verification required');
         // Email verification required
         Alert.alert(
