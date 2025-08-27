@@ -32,7 +32,7 @@ export function ProgressOverview() {
   }
 
   const getCurrentLevel = () => {
-    const totalPoints = user.totalPoints;
+    const totalPoints = user.totalPoints ?? 0;
     for (const [key, level] of Object.entries(LEVELS)) {
       if (totalPoints >= level.min && totalPoints <= level.max) {
         return { key, ...level };
@@ -44,7 +44,7 @@ export function ProgressOverview() {
   const currentLevel = getCurrentLevel();
   const progressToNext = currentLevel.key === 'MASTER' 
     ? 100 
-    : ((user.totalPoints - currentLevel.min) / (currentLevel.max - currentLevel.min)) * 100;
+    : ((user.totalPoints ?? 0 - currentLevel.min) / (currentLevel.max - currentLevel.min)) * 100;
 
   const statisticCards = [
     {
@@ -164,7 +164,7 @@ export function ProgressOverview() {
         >
           {currentLevel.key === 'MASTER'
             ? 'Maximaal niveau bereikt!'
-            : `${currentLevel.max - user.totalPoints} punten tot volgend niveau`
+                            : `${currentLevel.max - (user.totalPoints ?? 0)} punten tot volgend niveau`
           }
         </Text>
       </View>

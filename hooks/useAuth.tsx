@@ -277,7 +277,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Map back DB -> app schema
       const updatedProfile: User = {
         id: user.id,
-        email: user.email,
+        email: user.email ?? null,
         displayName: updatedRows.display_name,
         avatarUrl: updatedRows.avatar_url,
         level: updatedRows.level,

@@ -16,7 +16,7 @@ export default function ProfileScreen() {
   const getCurrentLevel = () => {
     if (!user) return { key: 'BRONZE', ...LEVELS.BRONZE };
     
-    const totalPoints = user.totalPoints;
+    const totalPoints = user.totalPoints ?? 0;
     for (const [key, level] of Object.entries(LEVELS)) {
       if (totalPoints >= level.min && totalPoints <= level.max) {
         return { key, ...level };
@@ -28,7 +28,7 @@ export default function ProfileScreen() {
   const currentLevel = getCurrentLevel();
   const progressToNext = currentLevel.key === 'MASTER' 
     ? 100 
-    : user ? ((user.totalPoints - currentLevel.min) / (currentLevel.max - currentLevel.min)) * 100 : 0;
+    : user ? ((user.totalPoints ?? 0 - currentLevel.min) / (currentLevel.max - currentLevel.min)) * 100 : 0;
 
   const handleSignOut = () => {
     Alert.alert(
@@ -246,7 +246,7 @@ export default function ProfileScreen() {
             >
               {currentLevel.key === 'MASTER'
                 ? 'Maximaal niveau bereikt!'
-                : `${currentLevel.max - user.totalPoints} punten tot volgend niveau`
+                : `${currentLevel.max - (user.totalPoints ?? 0)} punten tot volgend niveau`
               }
             </Text>
           </View>

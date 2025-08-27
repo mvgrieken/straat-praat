@@ -20,11 +20,11 @@ export class EnvGate extends React.Component<EnvGateProps, EnvGateState> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('EnvGate caught an error:', error, errorInfo);
   }
 
-  render() {
+  override render() {
     if (this.state.hasError && this.state.error) {
       return (
         <View style={styles.container}>

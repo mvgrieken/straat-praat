@@ -1,7 +1,18 @@
 import { supabase } from './supabase';
-import { Tables } from '@/src/lib/types/database.types';
+// import { Tables } from '@/src/lib/types/supabase';
 
-export type Profile = Tables<'profiles'>;
+export interface Profile {
+  id: string;
+  full_name: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  level: number;
+  total_points: number;
+  current_streak: number;
+  longest_streak: number;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface PointsTransaction {
   userId: string;
@@ -88,7 +99,7 @@ export class GamificationService {
       { level: 5, name: 'Meester', minPoints: 1000, maxPoints: Infinity, icon: '👑' },
     ];
 
-    return levels.find(l => l.level === level) || levels[0];
+    return levels.find(l => l.level === level) || levels[0]!;
   }
 
   /**
@@ -107,8 +118,8 @@ export class GamificationService {
         throw error;
       }
 
-      const now = new Date();
-      const today = now.toISOString().split('T')[0];
+      // const now = new Date();
+      // const today = now.toISOString().split('T')[0];
       
       // Check if user already completed daily activity today
       // This would require a separate table to track daily activities

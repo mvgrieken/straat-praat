@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 
 import { COLORS } from '@/constants';
-import { useAuth } from '@/hooks/useAuth';
+// import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
 import { TranslationService, TranslationResponse } from '@/services/translationService';
 
@@ -22,7 +22,7 @@ interface AITranslatorProps {
 }
 
 export function AITranslator({ direction, onDirectionChange }: AITranslatorProps) {
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const { settings } = useSettings();
   const isDark = settings.theme === 'dark';
   const queryClient = useQueryClient();

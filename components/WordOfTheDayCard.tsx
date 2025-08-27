@@ -8,7 +8,7 @@ import { View, Text, TouchableOpacity, Pressable } from 'react-native';
 import { COLORS } from '@/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
-import { WordService, WordOfDay } from '@/services/wordService.simple';
+import { WordService } from '@/services/wordService.simple';
 
 interface WordOfTheDayCardProps {
   onWordPress?: (wordId: string) => void;

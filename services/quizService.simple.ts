@@ -2,11 +2,14 @@ import { supabase } from './supabase';
 
 export interface Word {
   id: string;
-  slang_word: string;
-  dutch_meaning: string;
-  example_sentence: string | null;
+  word: string;
+  meaning: string;
+  example: string | null;
   audio_url: string | null;
-  difficulty_level: number | null;
+  difficulty: 'easy' | 'medium' | 'hard';
+  category: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface QuizQuestion {
@@ -30,19 +33,18 @@ export class QuizService {
    * Generate quiz questions (simplified)
    */
   static async generateQuizQuestions(
-    userId: string,
+    _userId: string,
     count: number = 5,
     difficulty?: number
   ): Promise<QuizQuestion[]> {
     try {
       // Get words from database
       let query = supabase
-        .from('words')
-        .select('*')
-        .eq('is_active', true);
+        .from('slang_words')
+        .select('*');
 
       if (difficulty) {
-        query = query.eq('difficulty_level', difficulty);
+        query = query.eq('difficulty', difficulty === 1 ? 'easy' : difficulty === 2 ? 'medium' : 'hard');
       }
 
       const { data: words, error } = await query.limit(count * 2);
@@ -62,16 +64,16 @@ export class QuizService {
           .filter(w => w.id !== word.id)
           .sort(() => Math.random() - 0.5)
           .slice(0, 3)
-          .map(w => w.dutch_meaning);
+          .map(w => w.meaning);
 
-        const options = [word.dutch_meaning, ...wrongAnswers]
+        const options = [word.meaning, ...wrongAnswers]
           .sort(() => Math.random() - 0.5);
 
         questions.push({
           id: word.id,
           word: word,
-          questionText: `Wat betekent "${word.slang_word}"?`,
-          correctAnswer: word.dutch_meaning,
+          questionText: `Wat betekent "${word.word}"?`,
+          correctAnswer: word.meaning,
           options,
           questionType: 'multiple_choice'
         });
@@ -91,7 +93,7 @@ export class QuizService {
     try {
       const { data, error } = await supabase
         .from('quiz_sessions')
-        .select('total_questions, correct_answers, total_score')
+        .select('*')
         .eq('user_id', userId)
         .not('completed_at', 'is', null);
 
@@ -109,7 +111,7 @@ export class QuizService {
       const totalQuestions = data.reduce((sum, session) => sum + (session.total_questions || 0), 0);
       const totalCorrect = data.reduce((sum, session) => sum + (session.correct_answers || 0), 0);
       const averageScore = totalQuizzes > 0 
-        ? data.reduce((sum, session) => sum + (session.total_score || 0), 0) / totalQuizzes
+        ? data.reduce((sum, session) => sum + (session.score || 0), 0) / totalQuizzes
         : 0;
 
       return {

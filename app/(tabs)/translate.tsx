@@ -232,7 +232,7 @@ export default function TranslateScreen() {
                     try {
                       const results = await WordService.searchWords(word, 1);
                       if (results.length > 0) {
-                        setSelectedWord(results[0]);
+                        setSelectedWord(results[0] || null);
                       }
                     } catch (error) {
                       console.error('Error searching word:', error);

@@ -87,6 +87,8 @@ export default function QuizPlayScreen() {
       
       const currentQuestion = questions[currentQuestionIndex];
       
+      if (!currentQuestion) return false;
+      
       return await QuizService.submitAnswer(
         sessionId,
         currentQuestion.word.id,
@@ -98,6 +100,8 @@ export default function QuizPlayScreen() {
     },
     onSuccess: (isCorrect) => {
       const currentQuestion = questions![currentQuestionIndex];
+      if (!currentQuestion) return;
+      
       const responseTime = Date.now() - questionStartTime;
       
       // Store the answer
@@ -301,13 +305,13 @@ export default function QuizPlayScreen() {
               fontSize: settings.fontSize === 'large' ? 24 : 20,
             }}
           >
-            {currentQuestion.questionText}
+            {currentQuestion?.questionText}
           </Text>
 
           {/* Answer Options */}
-          {currentQuestion.questionType === 'multiple_choice' || currentQuestion.questionType === 'example' ? (
+          {currentQuestion?.questionType === 'multiple_choice' || currentQuestion?.questionType === 'example' ? (
             <View className="space-y-3">
-              {currentQuestion.options.map((option, index) => (
+              {currentQuestion?.options?.map((option, index) => (
                 <TouchableOpacity
                   key={index}
                   onPress={() => handleAnswerSelect(option)}
@@ -315,9 +319,9 @@ export default function QuizPlayScreen() {
                   className="rounded-xl p-4"
                   style={{
                     backgroundColor: showResult
-                      ? option === currentQuestion.correctAnswer
+                      ? option === currentQuestion?.correctAnswer
                         ? COLORS.success[100]
-                        : option === selectedAnswer && option !== currentQuestion.correctAnswer
+                        : option === selectedAnswer && option !== currentQuestion?.correctAnswer
                           ? COLORS.error[100]
                           : isDark ? COLORS.gray[700] : COLORS.gray[100]
                       : selectedAnswer === option
@@ -325,9 +329,9 @@ export default function QuizPlayScreen() {
                         : isDark ? COLORS.gray[700] : COLORS.gray[100],
                     borderWidth: 2,
                     borderColor: showResult
-                      ? option === currentQuestion.correctAnswer
+                      ? option === currentQuestion?.correctAnswer
                         ? COLORS.success[500]
-                        : option === selectedAnswer && option !== currentQuestion.correctAnswer
+                        : option === selectedAnswer && option !== currentQuestion?.correctAnswer
                           ? COLORS.error[500]
                           : 'transparent'
                       : selectedAnswer === option
@@ -339,9 +343,9 @@ export default function QuizPlayScreen() {
                     className="text-center font-medium"
                     style={{ 
                       color: showResult
-                        ? option === currentQuestion.correctAnswer
+                        ? option === currentQuestion?.correctAnswer
                           ? COLORS.success[700]
-                          : option === selectedAnswer && option !== currentQuestion.correctAnswer
+                          : option === selectedAnswer && option !== currentQuestion?.correctAnswer
                             ? COLORS.error[700]
                             : isDark ? COLORS.gray[300] : COLORS.gray[700]
                         : selectedAnswer === option

@@ -102,21 +102,10 @@ export class TranslationService {
   /**
    * Get translation history for a user
    */
-  static async getTranslationHistory(userId: string, limit: number = 20) {
+  static async getTranslationHistory(_userId: string, _limit: number = 20) {
     try {
-      const { data, error } = await supabase
-        .from('translation_feedback')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(limit);
-
-      if (error) {
-        console.error('Error getting translation history:', error);
-        throw error;
-      }
-
-      return data || [];
+      // Simplified - return empty array since table doesn't exist
+      return [];
     } catch (error) {
       console.error('TranslationService.getTranslationHistory error:', error);
       throw error;
