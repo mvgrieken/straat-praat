@@ -42,6 +42,15 @@ export const signUpWithEmail = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      emailRedirectTo: Platform.OS === 'web' 
+        ? `${window.location.origin}/auth/callback`
+        : 'straat-praat://auth/callback',
+      // Disable email confirmation for development
+      data: {
+        email_confirm: false
+      }
+    }
   });
   
   if (error) {

@@ -208,6 +208,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: {
             displayName: displayName?.trim() || null,
           },
+          emailRedirectTo: Platform.OS === 'web' 
+            ? `${window.location.origin}/auth/callback`
+            : 'straat-praat://auth/callback',
         },
       });
       console.log('Supabase signUp response:', { data, error });

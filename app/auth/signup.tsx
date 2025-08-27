@@ -51,6 +51,9 @@ export default function SignupScreen() {
       console.log('Calling signUp with:', { email: data.email, password: data.password, displayName: data.displayName });
       const result = await signUp(data.email, data.password, data.displayName);
       console.log('SignUp result:', result);
+      console.log('SignUp result.user:', result.user);
+      console.log('SignUp result.session:', result.session);
+      console.log('SignUp result.user?.email_confirmed_at:', result.user?.email_confirmed_at);
       
       if (result.user && !result.session) {
         console.log('Email verification required');
@@ -65,10 +68,14 @@ export default function SignupScreen() {
             },
           ]
         );
-      } else {
-        console.log('Direct login, navigating to tabs');
+      } else if (result.user && result.session) {
+        console.log('Direct login successful, navigating to tabs');
         // Direct login (if email confirmation is disabled)
         router.replace('/(tabs)');
+      } else {
+        console.log('Unexpected result structure:', result);
+        Alert.alert('Registratie voltooid', 'Je account is aangemaakt. Je kunt nu inloggen.');
+        router.replace('/auth/login');
       }
     } catch (error) {
       console.error('Signup error:', error);
