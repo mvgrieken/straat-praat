@@ -38,7 +38,8 @@ const queryClient = new QueryClient({
   },
 });
 
-export default function RootLayout() {
+// Separate component for app setup that's wrapped by SettingsProvider
+function AppSetup() {
   const { requestPermissions } = useNotifications();
 
   useEffect(() => {
@@ -58,6 +59,10 @@ export default function RootLayout() {
     setupApp();
   }, []);
 
+  return null;
+}
+
+export default function RootLayout() {
   return (
     <EnvGate>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -65,6 +70,7 @@ export default function RootLayout() {
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
               <SettingsProvider>
+                <AppSetup />
                 <Stack>
                   <Stack.Screen 
                     name="(tabs)" 
