@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
+import React from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 
-import { useSettings } from '@/hooks/useSettings';
 import { COLORS } from '@/constants';
+import { useSettings } from '@/hooks/useSettings';
 
 interface TranslationResultProps {
   result: {

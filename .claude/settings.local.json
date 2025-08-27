@@ -23,9 +23,22 @@
       "Bash(gh repo view:*)",
       "Bash(netlify:*)",
       "Bash(npm run build:web:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__get_project_url",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__deploy_edge_function",
+      "mcp__supabase__list_edge_functions",
+      "mcp__supabase__generate_typescript_types",
+      "Bash(gh pr create:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }

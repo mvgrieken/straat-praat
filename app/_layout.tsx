@@ -1,16 +1,16 @@
-import { useEffect } from 'react';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import * as Notifications from 'expo-notifications';
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import * as SplashScreen from 'expo-splash-screen';
-import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
 
 import { AuthProvider } from '@/hooks/useAuth';
-import { SettingsProvider } from '@/hooks/useSettings';
 import { useNotifications } from '@/hooks/useNotifications';
+import { SettingsProvider } from '@/hooks/useSettings';
 
 import '../global.css';
 

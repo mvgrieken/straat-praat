@@ -1,11 +1,11 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import React from 'react';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Platform } from 'react-native';
 
-import { useSettings } from '@/hooks/useSettings';
 import { COLORS, STORAGE_KEYS } from '@/constants';
+import { useSettings } from '@/hooks/useSettings';
 
 interface RecentSearchesProps {
   onSelect: (search: string) => void;

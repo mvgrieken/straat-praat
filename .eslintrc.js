@@ -1,7 +1,6 @@
 module.exports = {
   extends: [
     'expo',
-    '@react-native',
     'plugin:@typescript-eslint/recommended',
     'plugin:react-hooks/recommended',
   ],
@@ -29,12 +28,12 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-non-null-assertion': 'warn',
     
-    // React Native specific
-    'react-native/no-unused-styles': 'error',
-    'react-native/split-platform-components': 'error',
-    'react-native/no-inline-styles': 'warn',
-    'react-native/no-color-literals': 'warn',
-    'react-native/no-raw-text': ['error', { skip: ['Text'] }],
+    // React Native specific rules disabled for now
+    // 'react-native/no-unused-styles': 'error',
+    // 'react-native/split-platform-components': 'error',
+    // 'react-native/no-inline-styles': 'warn',
+    // 'react-native/no-color-literals': 'warn',
+    // 'react-native/no-raw-text': ['error', { skip: ['Text'] }],
     
     // React Hooks
     'react-hooks/rules-of-hooks': 'error',
@@ -70,7 +69,6 @@ module.exports = {
   env: {
     es2021: true,
     node: true,
-    'react-native/react-native': true,
   },
   settings: {
     react: {

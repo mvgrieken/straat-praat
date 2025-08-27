@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Platform, useColorScheme } from 'react-native';
 
-import { AppSettings, NotificationSettings } from '@/types';
 import { STORAGE_KEYS, DEFAULT_APP_SETTINGS, DEFAULT_NOTIFICATION_SETTINGS } from '@/constants';
+import { AppSettings, NotificationSettings } from '@/types';
 
 interface SettingsContextType {
   settings: AppSettings;

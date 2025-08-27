@@ -1,147 +1,29 @@
-import React, { useState, useRef } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useQuery, useMutation } from '@tanstack/react-query';
 
-import { useSettings } from '@/hooks/useSettings';
-import { TranslationResult } from '@/components/TranslationResult';
-import { SearchSuggestions } from '@/components/SearchSuggestions';
+import { AITranslator } from '@/components/AITranslator';
 import { RecentSearches } from '@/components/RecentSearches';
+import { SearchBar } from '@/components/SearchBar';
 import { COLORS } from '@/constants';
+import { useSettings } from '@/hooks/useSettings';
+import { WordService, WordSearchResult } from '@/services/wordService.simple';
 
 export default function TranslateScreen() {
   const { settings } = useSettings();
   const isDark = settings.theme === 'dark';
   
-  const [query, setQuery] = useState('');
-  const [direction, setDirection] = useState<'slang_to_dutch' | 'dutch_to_slang'>('slang_to_dutch');
-  const [isVoiceRecording, setIsVoiceRecording] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  
-  const inputRef = useRef<TextInput>(null);
-
-  // Search suggestions query
-  const { data: suggestions } = useQuery({
-    queryKey: ['search-suggestions', query, direction],
-    queryFn: async () => {
-      if (query.length < 2) return [];
-      
-      // TODO: Implement actual API call for search suggestions
-      const mockSuggestions = [
-        'flex',
-        'flexing',
-        'lit',
-        'fire',
-        'sus',
-        'periodt',
-        'no cap',
-        'slay',
-        'vibe check',
-        'bet',
-      ].filter(word => 
-        word.toLowerCase().includes(query.toLowerCase())
-      ).slice(0, 5);
-      
-      return mockSuggestions;
-    },
-    enabled: query.length >= 2 && showSuggestions,
-  });
-
-  // Translation query
-  const { data: translationResult, isLoading, error, refetch } = useQuery({
-    queryKey: ['translation', query, direction],
-    queryFn: async () => {
-      if (!query.trim()) return null;
-      
-      // TODO: Implement actual translation API call
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-      
-      if (direction === 'slang_to_dutch') {
-        return {
-          original: query,
-          translation: 'opscheppen, laten zien',
-          example: `Stop met ${query}en met je nieuwe telefoon`,
-          audioUrl: null,
-          confidence: 0.95,
-        };
-      } else {
-        return {
-          original: query,
-          translation: 'flex',
-          example: 'Stop met flexen met je nieuwe telefoon',
-          audioUrl: null,
-          confidence: 0.89,
-        };
-      }
-    },
-    enabled: false, // Only run when manually triggered
-  });
-
-  // Voice recording mutation
-  const voiceRecordingMutation = useMutation({
-    mutationFn: async () => {
-      // TODO: Implement voice recording and speech-to-text
-      setIsVoiceRecording(true);
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate recording
-      setIsVoiceRecording(false);
-      return 'Dit is een test van spraakherkenning';
-    },
-    onSuccess: (transcribedText) => {
-      setQuery(transcribedText);
-      handleSearch(transcribedText);
-    },
-    onError: () => {
-      setIsVoiceRecording(false);
-      Alert.alert('Fout', 'Spraakherkenning is mislukt. Probeer het opnieuw.');
-    },
-  });
-
-  const handleSearch = (searchQuery = query) => {
-    if (!searchQuery.trim()) return;
-    
-    setShowSuggestions(false);
-    inputRef.current?.blur();
-    refetch();
-  };
-
-  const handleDirectionChange = () => {
-    setDirection(prev => 
-      prev === 'slang_to_dutch' ? 'dutch_to_slang' : 'slang_to_dutch'
-    );
-    if (query.trim()) {
-      refetch();
-    }
-  };
-
-  const handleSuggestionSelect = (suggestion: string) => {
-    setQuery(suggestion);
-    setShowSuggestions(false);
-    handleSearch(suggestion);
-  };
-
-  const handleVoiceRecording = () => {
-    if (Platform.OS === 'web') {
-      Alert.alert('Niet ondersteund', 'Spraakherkenning is niet beschikbaar op web.');
-      return;
-    }
-    
-    voiceRecordingMutation.mutate();
-  };
-
-  const clearQuery = () => {
-    setQuery('');
-    setShowSuggestions(false);
-  };
+  const [selectedWord, setSelectedWord] = useState<WordSearchResult | null>(null);
+  const [mode, setMode] = useState<'search' | 'translate'>('search');
+  const [direction, setDirection] = useState<'to_formal' | 'to_slang'>('to_formal');
 
   return (
     <SafeAreaView 
@@ -167,202 +49,208 @@ export default function TranslateScreen() {
               Vertalen
             </Text>
             <Text 
-              className="text-base opacity-70"
+              className="text-base opacity-70 mb-4"
               style={{ 
                 color: isDark ? COLORS.gray[300] : COLORS.gray[600],
                 fontSize: settings.fontSize === 'large' ? 18 : 16,
               }}
             >
-              Vertaal tussen Straat-Praat en Nederlands
+              Zoek woorden of vertaal zinnen
             </Text>
-          </View>
 
-          {/* Direction Toggle */}
-          <View className="px-6 mb-6">
-            <TouchableOpacity
-              onPress={handleDirectionChange}
-              className="rounded-2xl p-4 shadow-sm flex-row items-center justify-between"
+            {/* Mode Toggle */}
+            <View 
+              className="flex-row rounded-2xl p-1"
               style={{ 
-                backgroundColor: isDark ? COLORS.gray[800] : COLORS.white,
-                borderWidth: 1,
-                borderColor: isDark ? COLORS.gray[700] : COLORS.gray[200],
+                backgroundColor: isDark ? COLORS.gray[800] : COLORS.gray[100],
               }}
             >
-              <Text 
-                className="font-medium flex-1"
-                style={{ 
-                  color: isDark ? COLORS.white : COLORS.gray[900],
-                  fontSize: settings.fontSize === 'large' ? 16 : 14,
+              <TouchableOpacity
+                onPress={() => setMode('search')}
+                className={`flex-1 rounded-xl py-3 px-4 ${mode === 'search' ? 'shadow-sm' : ''}`}
+                style={{
+                  backgroundColor: mode === 'search' 
+                    ? (isDark ? COLORS.white : COLORS.white)
+                    : 'transparent'
                 }}
               >
-                {direction === 'slang_to_dutch' ? 'Straat-Praat → Nederlands' : 'Nederlands → Straat-Praat'}
-              </Text>
+                <Text 
+                  className="text-center font-medium"
+                  style={{ 
+                    color: mode === 'search' 
+                      ? (isDark ? COLORS.gray[900] : COLORS.gray[900])
+                      : (isDark ? COLORS.gray[400] : COLORS.gray[600]),
+                  }}
+                >
+                  Woorden zoeken
+                </Text>
+              </TouchableOpacity>
               
-              <View 
-                className="rounded-full p-2"
-                style={{ backgroundColor: COLORS.primary[100] }}
+              <TouchableOpacity
+                onPress={() => setMode('translate')}
+                className={`flex-1 rounded-xl py-3 px-4 ${mode === 'translate' ? 'shadow-sm' : ''}`}
+                style={{
+                  backgroundColor: mode === 'translate' 
+                    ? (isDark ? COLORS.white : COLORS.white)
+                    : 'transparent'
+                }}
               >
-                <Ionicons 
-                  name="swap-horizontal" 
-                  size={20} 
-                  color={COLORS.primary[600]} 
-                />
-              </View>
-            </TouchableOpacity>
+                <Text 
+                  className="text-center font-medium"
+                  style={{ 
+                    color: mode === 'translate' 
+                      ? (isDark ? COLORS.gray[900] : COLORS.gray[900])
+                      : (isDark ? COLORS.gray[400] : COLORS.gray[600]),
+                  }}
+                >
+                  AI Vertaler
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {/* Search Input */}
-          <View className="px-6 mb-6">
-            <View 
-              className="rounded-2xl shadow-sm"
-              style={{ 
-                backgroundColor: isDark ? COLORS.gray[800] : COLORS.white,
-                borderWidth: 1,
-                borderColor: isDark ? COLORS.gray[700] : COLORS.gray[200],
-              }}
-            >
-              <View className="flex-row items-center p-4">
-                <TextInput
-                  ref={inputRef}
-                  value={query}
-                  onChangeText={(text) => {
-                    setQuery(text);
-                    setShowSuggestions(text.length >= 2);
-                  }}
-                  onSubmitEditing={() => handleSearch()}
-                  placeholder={
-                    direction === 'slang_to_dutch' 
-                      ? 'Voer een slangwoord in...' 
-                      : 'Voer een Nederlands woord in...'
-                  }
-                  placeholderTextColor={isDark ? COLORS.gray[500] : COLORS.gray[400]}
-                  className="flex-1 mr-3"
-                  style={{ 
-                    color: isDark ? COLORS.white : COLORS.gray[900],
-                    fontSize: settings.fontSize === 'large' ? 18 : 16,
-                  }}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                
-                {query.length > 0 && (
-                  <TouchableOpacity onPress={clearQuery} className="mr-3">
-                    <Ionicons 
-                      name="close-circle" 
-                      size={20} 
-                      color={isDark ? COLORS.gray[500] : COLORS.gray[400]} 
-                    />
-                  </TouchableOpacity>
+          {/* Content based on mode */}
+          <View className="px-6 flex-1">
+            {mode === 'search' ? (
+              <>
+                {/* Search Input */}
+                <View className="mb-6">
+                  <SearchBar
+                    onWordSelect={setSelectedWord}
+                    placeholder="Zoek een slangwoord..."
+                  />
+                </View>
+
+                {/* Word Result */}
+                {selectedWord && (
+                  <View className="mb-6">
+                    <View 
+                      className="rounded-2xl p-6 shadow-lg"
+                      style={{ 
+                        backgroundColor: isDark ? COLORS.gray[800] : COLORS.white,
+                        borderWidth: 1,
+                        borderColor: isDark ? COLORS.gray[700] : COLORS.gray[200],
+                      }}
+                    >
+                      <View className="flex-row items-start justify-between mb-4">
+                        <View className="flex-1">
+                          <Text 
+                            className="text-3xl font-bold mb-2"
+                            style={{ 
+                              color: isDark ? COLORS.white : COLORS.gray[900],
+                              fontSize: settings.fontSize === 'large' ? 32 : 28,
+                            }}
+                          >
+                            {selectedWord.slang_word}
+                          </Text>
+                          <Text 
+                            className="text-lg"
+                            style={{ 
+                              color: isDark ? COLORS.gray[300] : COLORS.gray[700],
+                              fontSize: settings.fontSize === 'large' ? 20 : 18,
+                            }}
+                          >
+                            {selectedWord.dutch_meaning}
+                          </Text>
+                        </View>
+                        {selectedWord.match_type !== 'exact' && (
+                          <View className="bg-blue-100 rounded-full px-3 py-1">
+                            <Text className="text-blue-700 text-xs font-medium">
+                              {selectedWord.match_type === 'phonetic' ? 'Klinkt als' : 
+                               selectedWord.match_type === 'fuzzy' ? 'Vergelijkbaar' : 
+                               selectedWord.match_type.includes('variant') ? 'Variant' : ''}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+
+                      {selectedWord.example_sentence && (
+                        <View 
+                          className="rounded-lg p-4 mb-4"
+                          style={{ backgroundColor: isDark ? COLORS.gray[700] : COLORS.gray[100] }}
+                        >
+                          <Text 
+                            className="text-sm uppercase font-medium mb-2 opacity-60"
+                            style={{ color: isDark ? COLORS.gray[400] : COLORS.gray[600] }}
+                          >
+                            Voorbeeld
+                          </Text>
+                          <Text 
+                            className="italic"
+                            style={{ 
+                              color: isDark ? COLORS.gray[200] : COLORS.gray[800],
+                              fontSize: settings.fontSize === 'large' ? 16 : 14,
+                            }}
+                          >
+                            "{selectedWord.example_sentence}"
+                          </Text>
+                        </View>
+                      )}
+
+                      <View className="flex-row items-center justify-between">
+                        {selectedWord.audio_url ? (
+                          <TouchableOpacity 
+                            className="flex-row items-center rounded-full px-4 py-2"
+                            style={{ backgroundColor: COLORS.primary[100] }}
+                          >
+                            <Ionicons name="volume-high" size={18} color={COLORS.primary[600]} />
+                            <Text 
+                              className="ml-2 font-medium"
+                              style={{ color: COLORS.primary[600] }}
+                            >
+                              Uitspraak
+                            </Text>
+                          </TouchableOpacity>
+                        ) : (
+                          <View />
+                        )}
+
+                        <View className="flex-row items-center">
+                          <Text 
+                            className="text-xs mr-2"
+                            style={{ color: isDark ? COLORS.gray[500] : COLORS.gray[400] }}
+                          >
+                            Match: {Math.round(selectedWord.relevance_score * 100)}%
+                          </Text>
+                          <TouchableOpacity>
+                            <Ionicons 
+                              name="heart-outline" 
+                              size={24} 
+                              color={isDark ? COLORS.gray[400] : COLORS.gray[500]} 
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
                 )}
 
-                <TouchableOpacity
-                  onPress={handleVoiceRecording}
-                  disabled={isVoiceRecording || voiceRecordingMutation.isPending}
-                  className="mr-3"
-                >
-                  <Ionicons 
-                    name={isVoiceRecording ? "radio-button-on" : "mic-outline"} 
-                    size={24} 
-                    color={
-                      isVoiceRecording || voiceRecordingMutation.isPending
-                        ? COLORS.error[500]
-                        : COLORS.primary[500]
-                    } 
-                  />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => handleSearch()}
-                  disabled={!query.trim() || isLoading}
-                  className="rounded-xl p-2"
-                  style={{ 
-                    backgroundColor: query.trim() ? COLORS.primary[500] : COLORS.gray[300] 
-                  }}
-                >
-                  <Ionicons 
-                    name="search" 
-                    size={20} 
-                    color="white" 
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
+                {/* Recent Searches */}
+                {!selectedWord && (
+                  <RecentSearches onSelect={async (word) => {
+                    // Find the word in database when selected from recent
+                    try {
+                      const results = await WordService.searchWords(word, 1);
+                      if (results.length > 0) {
+                        setSelectedWord(results[0]);
+                      }
+                    } catch (error) {
+                      console.error('Error searching word:', error);
+                    }
+                  }} />
+                )}
+              </>
+            ) : (
+              <>
+                {/* AI Translator */}
+                <AITranslator
+                  direction={direction}
+                  onDirectionChange={() => setDirection(prev => prev === 'to_formal' ? 'to_slang' : 'to_formal')}
+                />
+              </>
+            )}
           </View>
 
-          {/* Search Suggestions */}
-          {showSuggestions && suggestions && suggestions.length > 0 && (
-            <View className="px-6 mb-6">
-              <SearchSuggestions 
-                suggestions={suggestions}
-                onSelect={handleSuggestionSelect}
-              />
-            </View>
-          )}
-
-          {/* Translation Result */}
-          {translationResult && (
-            <View className="px-6 mb-6">
-              <TranslationResult 
-                result={translationResult}
-                isLoading={isLoading}
-                direction={direction}
-              />
-            </View>
-          )}
-
-          {/* Error State */}
-          {error && (
-            <View className="px-6 mb-6">
-              <View 
-                className="rounded-2xl p-6 shadow-sm"
-                style={{ 
-                  backgroundColor: COLORS.error[50],
-                  borderWidth: 1,
-                  borderColor: COLORS.error[200],
-                }}
-              >
-                <View className="flex-row items-center mb-3">
-                  <Ionicons 
-                    name="alert-circle" 
-                    size={24} 
-                    color={COLORS.error[500]} 
-                  />
-                  <Text 
-                    className="font-semibold ml-2"
-                    style={{ 
-                      color: COLORS.error[700],
-                      fontSize: settings.fontSize === 'large' ? 18 : 16,
-                    }}
-                  >
-                    Vertaling mislukt
-                  </Text>
-                </View>
-                <Text 
-                  className="mb-4"
-                  style={{ 
-                    color: COLORS.error[600],
-                    fontSize: settings.fontSize === 'large' ? 16 : 14,
-                  }}
-                >
-                  Er is een fout opgetreden bij het vertalen. Controleer je internetverbinding en probeer het opnieuw.
-                </Text>
-                <TouchableOpacity 
-                  onPress={() => refetch()}
-                  className="self-start rounded-lg px-4 py-2"
-                  style={{ backgroundColor: COLORS.error[500] }}
-                >
-                  <Text className="text-white font-medium">Probeer opnieuw</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          {/* Recent Searches */}
-          {!query && !translationResult && !error && (
-            <View className="px-6 mb-8">
-              <RecentSearches onSelect={handleSuggestionSelect} />
-            </View>
-          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

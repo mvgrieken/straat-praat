@@ -1,17 +1,17 @@
+import { useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import React from 'react';
 import { View, Text, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
 
+import { ProgressOverview } from '@/components/ProgressOverview';
+import { QuickActionCard } from '@/components/QuickActionCard';
+import { RecentWords } from '@/components/RecentWords';
+import { StreakCard } from '@/components/StreakCard';
+import { WordOfTheDayCard } from '@/components/WordOfTheDayCard';
+import { COLORS } from '@/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
-import { WordOfTheDayCard } from '@/components/WordOfTheDayCard';
-import { StreakCard } from '@/components/StreakCard';
-import { QuickActionCard } from '@/components/QuickActionCard';
-import { ProgressOverview } from '@/components/ProgressOverview';
-import { RecentWords } from '@/components/RecentWords';
-import { COLORS } from '@/constants';
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -19,8 +19,8 @@ export default function HomeScreen() {
   
   const isDark = settings.theme === 'dark';
   
-  // Fetch word of the day
-  const { data: wordOfDay, refetch, isRefetching } = useQuery({
+  // Fetch word of the day (not used directly since WordOfTheDayCard fetches its own data)
+  const { refetch, isRefetching } = useQuery({
     queryKey: ['word-of-day'],
     queryFn: async () => {
       // TODO: Implement actual API call
@@ -120,11 +120,12 @@ export default function HomeScreen() {
         </View>
 
         {/* Word of the Day */}
-        {wordOfDay && (
-          <View className="px-6 mb-6">
-            <WordOfTheDayCard word={wordOfDay} />
-          </View>
-        )}
+        <View className="px-6 mb-6">
+          <WordOfTheDayCard onWordPress={(wordId) => {
+            // Navigate to word detail or show in modal
+            router.push(`/word/${wordId}` as any);
+          }} />
+        </View>
 
         {/* Streak Card */}
         <View className="px-6 mb-6">

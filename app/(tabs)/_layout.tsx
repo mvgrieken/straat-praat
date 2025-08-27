@@ -1,6 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 import { COLORS } from '@/constants';
 import { useSettings } from '@/hooks/useSettings';

@@ -15,12 +15,12 @@ export interface User {
   email?: string | null;
   displayName?: string | null;
   avatarUrl?: string | null;
-  level: number;
-  totalPoints: number;
-  currentStreak: number;
-  longestStreak: number;
-  createdAt: string;
-  updatedAt: string;
+  level: number | null;
+  totalPoints: number | null;
+  currentStreak: number | null;
+  longestStreak: number | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 export interface UserProgress {
