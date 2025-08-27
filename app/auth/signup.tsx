@@ -17,6 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/hooks/useAuth';
 import { signupSchema, SignupFormData } from '@/src/lib/validations/auth';
 import TextField from '@/components/forms/TextField';
+import CheckboxField from '@/components/forms/CheckboxField';
 
 export default function SignupScreen() {
   const [isLoading, setIsLoading] = useState(false);
@@ -145,17 +146,13 @@ export default function SignupScreen() {
               required
             />
 
-            <View style={styles.termsContainer}>
-              <Text style={styles.termsText}>
-                Door een account aan te maken ga je akkoord met onze{' '}
-                <Text style={styles.termsLink}>Algemene Voorwaarden</Text>
-                {' '}en{' '}
-                <Text style={styles.termsLink}>Privacybeleid</Text>.
-              </Text>
-              {errors.acceptTerms && (
-                <Text style={styles.errorText}>{errors.acceptTerms.message}</Text>
-              )}
-            </View>
+            <CheckboxField
+              name="acceptTerms"
+              control={control}
+              label="Ik ga akkoord met de Algemene Voorwaarden en Privacybeleid"
+              error={errors.acceptTerms?.message}
+              required
+            />
 
             <TouchableOpacity
               style={[styles.signupButton, isLoading && styles.signupButtonDisabled]}
@@ -213,19 +210,6 @@ const styles = StyleSheet.create({
   form: {
     marginBottom: 24,
   },
-  termsContainer: {
-    marginVertical: 16,
-  },
-  termsText: {
-    fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 20,
-    textAlign: 'center',
-  },
-  termsLink: {
-    color: '#3B82F6',
-    fontWeight: '600',
-  },
   signupButton: {
     backgroundColor: '#3B82F6',
     paddingVertical: 16,
@@ -255,11 +239,5 @@ const styles = StyleSheet.create({
     color: '#3B82F6',
     fontSize: 16,
     fontWeight: '600',
-  },
-  errorText: {
-    fontSize: 14,
-    color: '#EF4444',
-    marginTop: 4,
-    textAlign: 'center',
   },
 });
