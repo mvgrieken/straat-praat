@@ -47,7 +47,8 @@
       "Bash(npm start)",
       "mcp__supabase__generate_typescript_types",
       "WebFetch(domain:straat-praat.netlify.app)",
-      "Bash(dir /s C:UsersMartijnvanGriekendropboxappsstraat-praatassetsimages)"
+      "Bash(dir /s C:UsersMartijnvanGriekendropboxappsstraat-praatassetsimages)",
+      "Bash(gh pr create:*)"
     ],
     "deny": [],
     "ask": []
