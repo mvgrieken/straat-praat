@@ -22,7 +22,8 @@
       "Bash(git remote get-url:*)",
       "Bash(gh repo view:*)",
       "Bash(netlify:*)",
-      "Bash(npm run build:web:*)"
+      "Bash(npm run build:web:*)",
+      "Bash(git merge:*)"
     ],
     "deny": [],
     "ask": []
