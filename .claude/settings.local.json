@@ -33,7 +33,9 @@
       "mcp__supabase__list_edge_functions",
       "mcp__supabase__generate_typescript_types",
       "Bash(gh pr create:*)",
-      "WebFetch(domain:straat-praat.netlify.app)"
+      "WebFetch(domain:straat-praat.netlify.app)",
+      "Bash(claude mcp add netlify npx:*)",
+      "Bash(claude mcp:*)"
     ],
     "deny": [],
     "ask": []

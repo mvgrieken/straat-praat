@@ -11,6 +11,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from '@/hooks/useAuth';
 import { useNotifications } from '@/hooks/useNotifications';
 import { SettingsProvider } from '@/hooks/useSettings';
+import { EnvGate } from '@/components/EnvGate';
 
 import '../global.css';
 
@@ -58,44 +59,46 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <SettingsProvider>
-              <Stack>
-                <Stack.Screen 
-                  name="(tabs)" 
-                  options={{ headerShown: false }} 
-                />
-                <Stack.Screen 
-                  name="auth" 
-                  options={{ headerShown: false }} 
-                />
-                <Stack.Screen 
-                  name="onboarding" 
-                  options={{ headerShown: false }} 
-                />
-                <Stack.Screen
-                  name="quiz/[id]"
-                  options={{
-                    title: 'Quiz',
-                    presentation: 'modal',
-                  }}
-                />
-                <Stack.Screen
-                  name="word/[id]"
-                  options={{
-                    title: 'Woorddetails',
-                    presentation: 'modal',
-                  }}
-                />
-              </Stack>
-              <StatusBar style="auto" />
-            </SettingsProvider>
-          </AuthProvider>
-        </QueryClientProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <EnvGate>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <SettingsProvider>
+                <Stack>
+                  <Stack.Screen 
+                    name="(tabs)" 
+                    options={{ headerShown: false }} 
+                  />
+                  <Stack.Screen 
+                    name="auth" 
+                    options={{ headerShown: false }} 
+                  />
+                  <Stack.Screen 
+                    name="onboarding" 
+                    options={{ headerShown: false }} 
+                  />
+                  <Stack.Screen
+                    name="quiz/[id]"
+                    options={{
+                      title: 'Quiz',
+                      presentation: 'modal',
+                    }}
+                  />
+                  <Stack.Screen
+                    name="word/[id]"
+                    options={{
+                      title: 'Woorddetails',
+                      presentation: 'modal',
+                    }}
+                  />
+                </Stack>
+                <StatusBar style="auto" />
+              </SettingsProvider>
+            </AuthProvider>
+          </QueryClientProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </EnvGate>
   );
 }

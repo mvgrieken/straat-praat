@@ -1,22 +1,12 @@
 import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
-import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 import type { Database } from '../src/lib/types/database.types';
+import { validateEnvironment } from '../src/env';
 
-// Get environment variables from Expo config or process.env
-const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl ?? 
-                   process.env.EXPO_PUBLIC_SUPABASE_URL;
-
-const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey ?? 
-                       process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Supabase URL and Anon Key are required. Please check your environment variables or Expo config.'
-  );
-}
+// Validate and get environment variables
+const { supabaseUrl, supabaseAnonKey } = validateEnvironment();
 
 // Import platform-specific secure storage adapter
 import StorageAdapter from './storage/secureStoreAdapter';

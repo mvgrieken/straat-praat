@@ -25,6 +25,14 @@ jobs:
         run: npx expo export --platform web
         env:
           EXPO_USE_STATIC: "1"
+          EXPO_PUBLIC_SUPABASE_URL: "https://example.supabase.co"
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example"
+
+      - name: Verify build output
+        run: |
+          ls -la dist/
+          test -f dist/index.html
+          test -f dist/_expo/static/js/web/index-*.js
 
       - name: Upload dist artifact
         uses: actions/upload-artifact@v4
