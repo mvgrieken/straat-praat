@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Session, User as SupabaseUser } from '@supabase/supabase-js';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 
+import { STORAGE_KEYS } from '@/constants';
 import { supabase } from '@/services/supabase';
 import { User } from '@/types';
-import { STORAGE_KEYS } from '@/constants';
 
 interface AuthContextType {
   user: User | null;
@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Fetch fresh profile from database
       const { data: profile, error } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
         .eq('id', supabaseUser.id)
         .single();
@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
 
         const { data: createdProfile, error: createError } = await supabase
-          .from('users')
+          .from('profiles')
           .insert([newProfile])
           .select()
           .single();
@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Map database schema to application schema
         userProfile = {
           id: createdProfile.id,
-          email: createdProfile.email,
+          email: supabaseUser.email ?? null,
           displayName: createdProfile.display_name,
           avatarUrl: createdProfile.avatar_url,
           level: createdProfile.level,
@@ -132,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Map database schema to application schema  
         userProfile = {
           id: profile.id,
-          email: profile.email,
+          email: supabaseUser.email ?? null,
           displayName: profile.display_name,
           avatarUrl: profile.avatar_url,
           level: profile.level,
@@ -260,7 +260,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
 
       const { error } = await supabase
-        .from('users')
+        .from('profiles')
         .update(updatedProfile)
         .eq('id', user.id);
 

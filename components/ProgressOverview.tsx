@@ -1,11 +1,11 @@
-import React from 'react';
-import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
+import React from 'react';
+import { View, Text } from 'react-native';
 
+import { COLORS, LEVELS } from '@/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
-import { COLORS, LEVELS } from '@/constants';
 
 export function ProgressOverview() {
   const { user } = useAuth();

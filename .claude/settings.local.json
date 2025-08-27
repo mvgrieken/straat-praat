@@ -22,9 +22,38 @@
       "Bash(git remote get-url:*)",
       "Bash(gh repo view:*)",
       "Bash(netlify:*)",
-      "Bash(npm run build:web:*)"
+      "Bash(npm run build:web:*)",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__get_project_url",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__execute_sql",
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_35df4b2785a7d2c27b03b68d74191214685afbb0 npx -y @supabase/mcp-server-supabase@latest --project-ref=trrsgvxoylhcudtiimvb --help)",
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_35df4b2785a7d2c27b03b68d74191214685afbb0 npx -y @supabase/mcp-server-supabase@latest --project-ref=trrsgvxoylhcudtiimvb)",
+      "Read(/C:\\Users\\MartijnvanGrieken\\Dropbox\\Apps\\straat-praat\\docs/**)",
+      "Read(/C:\\Users\\MartijnvanGrieken\\Dropbox\\Apps\\straat-praat\\docs/**)",
+      "Read(/C:\\Users\\MartijnvanGrieken\\Dropbox\\Apps\\straat-praat\\docs/**)",
+      "Read(/C:\\Users\\MartijnvanGrieken\\Dropbox\\Apps\\straat-praat\\docs/**)",
+      "Read(/C:\\Users\\MartijnvanGrieken\\Dropbox\\Apps\\straat-praat\\docs/**)",
+      "Read(/C:\\Users\\MartijnvanGrieken\\Dropbox\\Apps\\straat-praat\\docs/**)",
+      "Read(/C:\\Users\\MartijnvanGrieken\\Dropbox\\Apps\\straat-praat\\docs/**)",
+      "Read(/C:\\Users\\MartijnvanGrieken\\Dropbox\\Apps\\straat-praat\\docs/**)",
+      "Read(/C:\\Users\\MartijnvanGrieken\\Dropbox\\Apps\\straat-praat\\docs/**)",
+      "Read(/C:\\Users\\MartijnvanGrieken\\Dropbox\\Apps\\straat-praat\\docs/**)",
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__deploy_edge_function",
+      "mcp__supabase__list_edge_functions",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run lint)",
+      "Bash(npm start)",
+      "mcp__supabase__generate_typescript_types",
+      "WebFetch(domain:straat-praat.netlify.app)",
+      "Bash(dir /s C:UsersMartijnvanGriekendropboxappsstraat-praatassetsimages)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }

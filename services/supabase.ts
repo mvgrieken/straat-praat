@@ -1,10 +1,9 @@
 import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import type { Database } from '../src/lib/types/supabase';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+
+import type { Database } from '../src/lib/types/database.types';
 
 // Get environment variables from Expo config or process.env
 const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl ?? 
@@ -19,37 +18,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-// Storage adapter for different platforms
-const createStorageAdapter = () => {
-  if (Platform.OS === 'web') {
-    return {
-      getItem: (key: string) => {
-        if (typeof localStorage === 'undefined') {
-          return null;
-        }
-        return localStorage.getItem(key);
-      },
-      setItem: (key: string, value: string) => {
-        if (typeof localStorage === 'undefined') {
-          return;
-        }
-        localStorage.setItem(key, value);
-      },
-      removeItem: (key: string) => {
-        if (typeof localStorage === 'undefined') {
-          return;
-        }
-        localStorage.removeItem(key);
-      },
-    };
-  }
-  
-  return AsyncStorage;
-};
+// Import platform-specific secure storage adapter
+import StorageAdapter from './storage/secureStoreAdapter';
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: createStorageAdapter(),
+    storage: StorageAdapter,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: Platform.OS === 'web',
@@ -148,7 +122,7 @@ export const getSlangWords = async (limit = 20, offset = 0, search?: string) => 
 
 export const getWordById = async (id: string) => {
   const { data, error } = await supabase
-    .from('slang_words')
+    .from('words')
     .select('*')
     .eq('id', id)
     .single();

@@ -1,12 +1,12 @@
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 
+import { COLORS, LEVELS } from '@/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
-import { COLORS, LEVELS } from '@/constants';
 
 export default function ProfileScreen() {
   const { user, signOut, loading } = useAuth();
@@ -364,7 +364,7 @@ export default function ProfileScreen() {
                 borderBottomColor: isDark ? COLORS.gray[700] : COLORS.gray[200],
               }}
               onPress={() => {
-                const sizes: Array<'small' | 'normal' | 'large' | 'extra_large'> = ['small', 'normal', 'large', 'extra_large'];
+                const sizes: ('small' | 'normal' | 'large' | 'extra_large')[] = ['small', 'normal', 'large', 'extra_large'];
                 const currentIndex = sizes.indexOf(settings.fontSize);
                 const nextIndex = (currentIndex + 1) % sizes.length;
                 const newSize = sizes[nextIndex];

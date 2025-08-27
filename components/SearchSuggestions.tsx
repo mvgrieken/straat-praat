@@ -1,9 +1,9 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
-import { useSettings } from '@/hooks/useSettings';
 import { COLORS } from '@/constants';
+import { useSettings } from '@/hooks/useSettings';
 
 interface SearchSuggestionsProps {
   suggestions: string[];

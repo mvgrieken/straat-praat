@@ -45,10 +45,10 @@ export interface Database {
         }
         Relationships: []
       }
-      users: {
+      profiles: {
         Row: {
           id: string
-          email: string | null
+          full_name: string | null
           display_name: string | null
           avatar_url: string | null
           level: number
@@ -60,7 +60,7 @@ export interface Database {
         }
         Insert: {
           id: string
-          email?: string | null
+          full_name?: string | null
           display_name?: string | null
           avatar_url?: string | null
           level?: number
@@ -72,7 +72,7 @@ export interface Database {
         }
         Update: {
           id?: string
-          email?: string | null
+          full_name?: string | null
           display_name?: string | null
           avatar_url?: string | null
           level?: number
@@ -84,10 +84,51 @@ export interface Database {
         }
         Relationships: [
           {
-            foreignKeyName: "users_id_fkey"
+            foreignKeyName: "profiles_id_fkey"
             columns: ["id"]
             isOneToOne: true
-            referencedRelation: "users"
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      user_security: {
+        Row: {
+          user_id: string
+          pin_hash: string | null
+          pin_set_at: string | null
+          pin_try_count: number
+          locked_until: string | null
+          last_pin_check: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          pin_hash?: string | null
+          pin_set_at?: string | null
+          pin_try_count?: number
+          locked_until?: string | null
+          last_pin_check?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          pin_hash?: string | null
+          pin_set_at?: string | null
+          pin_try_count?: number
+          locked_until?: string | null
+          last_pin_check?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_security_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           }
         ]
@@ -131,7 +172,7 @@ export interface Database {
             foreignKeyName: "user_progress_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -182,7 +223,7 @@ export interface Database {
             foreignKeyName: "quiz_sessions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           }
         ]
@@ -241,7 +282,7 @@ export interface Database {
             foreignKeyName: "user_achievements_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -303,7 +344,7 @@ export interface Database {
             foreignKeyName: "favorite_words_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -336,7 +377,7 @@ export interface Database {
             foreignKeyName: "search_history_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           }
         ]
@@ -383,7 +424,7 @@ export interface Database {
             foreignKeyName: "word_submissions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           }
         ]

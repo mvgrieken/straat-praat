@@ -1,13 +1,13 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
 
+import { COLORS } from '@/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
 import { SlangWord } from '@/types';
-import { COLORS } from '@/constants';
 
 export function RecentWords() {
   const { user } = useAuth();
@@ -168,7 +168,7 @@ export function RecentWords() {
         {recentWords.map((word) => (
           <TouchableOpacity
             key={word.id}
-            onPress={() => router.push(`/word/${word.id}`)}
+            onPress={() => router.push(`/word/${word.id}` as any)}
             className="rounded-xl p-4 mr-4 shadow-sm"
             style={{ 
               backgroundColor: isDark ? COLORS.gray[800] : COLORS.white,

@@ -1,13 +1,14 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
 
+import { COLORS } from '@/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
-import { COLORS } from '@/constants';
+import { QuizService } from '@/services/quizService.simple';
 
 interface QuizLevel {
   id: string;
@@ -24,42 +25,43 @@ export default function QuizScreen() {
   const { settings } = useSettings();
   const isDark = settings.theme === 'dark';
 
-  // Fetch available quiz levels
-  const { data: quizLevels } = useQuery({
-    queryKey: ['quiz-levels'],
-    queryFn: async (): Promise<QuizLevel[]> => {
-      // TODO: Replace with real API call
-      return [
-        {
-          id: '1',
-          name: 'Beginner Quiz',
-          description: 'Start met de basis slangwoorden',
-          difficulty: 'easy',
-          icon: '🌟',
-          questionsCount: 10,
-          pointsReward: 50,
-        },
-        {
-          id: '2', 
-          name: 'Gevorderde Quiz',
-          description: 'Test je kennis van populaire slang',
-          difficulty: 'medium',
-          icon: '🔥',
-          questionsCount: 15,
-          pointsReward: 100,
-        },
-        {
-          id: '3',
-          name: 'Expert Quiz',
-          description: 'De moeilijkste slangwoorden',
-          difficulty: 'hard',
-          icon: '💎',
-          questionsCount: 20,
-          pointsReward: 200,
-        },
-      ];
-    },
+  // Fetch quiz statistics
+  const { data: quizStats } = useQuery({
+    queryKey: ['quiz-stats', user?.id],
+    queryFn: () => user ? QuizService.getQuizStats(user.id) : null,
+    enabled: !!user,
   });
+
+  // Static quiz levels based on difficulty
+  const quizLevels: QuizLevel[] = [
+    {
+      id: '1',
+      name: 'Beginner Quiz',
+      description: 'Start met de basis slangwoorden',
+      difficulty: 'easy',
+      icon: '🌟',
+      questionsCount: 5,
+      pointsReward: 25,
+    },
+    {
+      id: '2', 
+      name: 'Gevorderde Quiz',
+      description: 'Test je kennis van populaire slang',
+      difficulty: 'medium',
+      icon: '🔥',
+      questionsCount: 5,
+      pointsReward: 50,
+    },
+    {
+      id: '3',
+      name: 'Expert Quiz',
+      description: 'De moeilijkste slangwoorden',
+      difficulty: 'hard',
+      icon: '💎',
+      questionsCount: 5,
+      pointsReward: 100,
+    },
+  ];
 
   const getDifficultyColor = (difficulty: 'easy' | 'medium' | 'hard') => {
     switch (difficulty) {
@@ -159,7 +161,7 @@ export default function QuizScreen() {
                     fontWeight: 'bold',
                   }}
                 >
-                  {user.totalPoints}
+                  {quizStats?.totalQuizzes || 0}
                 </Text>
                 <Text 
                   style={{ 
@@ -167,27 +169,7 @@ export default function QuizScreen() {
                     fontSize: settings.fontSize === 'large' ? 14 : 12,
                   }}
                 >
-                  Punten
-                </Text>
-              </View>
-              
-              <View style={{ alignItems: 'center' }}>
-                <Text 
-                  style={{ 
-                    color: COLORS.warning[500],
-                    fontSize: settings.fontSize === 'large' ? 24 : 20,
-                    fontWeight: 'bold',
-                  }}
-                >
-                  {user.level}
-                </Text>
-                <Text 
-                  style={{ 
-                    color: isDark ? COLORS.gray[300] : COLORS.gray[600],
-                    fontSize: settings.fontSize === 'large' ? 14 : 12,
-                  }}
-                >
-                  Level
+                  Quizzes
                 </Text>
               </View>
               
@@ -199,7 +181,7 @@ export default function QuizScreen() {
                     fontWeight: 'bold',
                   }}
                 >
-                  {user.currentStreak}
+                  {quizStats?.averageScore || 0}%
                 </Text>
                 <Text 
                   style={{ 
@@ -207,7 +189,27 @@ export default function QuizScreen() {
                     fontSize: settings.fontSize === 'large' ? 14 : 12,
                   }}
                 >
-                  Streak
+                  Gemiddelde
+                </Text>
+              </View>
+              
+              <View style={{ alignItems: 'center' }}>
+                <Text 
+                  style={{ 
+                    color: COLORS.warning[500],
+                    fontSize: settings.fontSize === 'large' ? 24 : 20,
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {quizStats?.totalCorrect || 0}
+                </Text>
+                <Text 
+                  style={{ 
+                    color: isDark ? COLORS.gray[300] : COLORS.gray[600],
+                    fontSize: settings.fontSize === 'large' ? 14 : 12,
+                  }}
+                >
+                  Correct
                 </Text>
               </View>
             </View>
