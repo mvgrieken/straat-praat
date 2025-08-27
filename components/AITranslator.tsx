@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+﻿import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import {
@@ -96,7 +96,7 @@ export function AITranslator({ direction, onDirectionChange }: AITranslatorProps
               fontSize: settings.fontSize === 'large' ? 16 : 14,
             }}
           >
-            {direction === 'to_formal' ? 'Slang → Nederlands' : 'Nederlands → Slang'}
+            {direction === 'to_formal' ? 'Slang -> Nederlands' : 'Nederlands -> Slang'}
           </Text>
           
           <View 

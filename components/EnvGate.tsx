@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
 interface EnvGateProps {
@@ -30,7 +30,7 @@ export class EnvGate extends React.Component<EnvGateProps, EnvGateState> {
         <View style={styles.container}>
           <ScrollView contentContainerStyle={styles.content}>
             <View style={styles.header}>
-              <Text style={styles.title}>⚠️ Configuration Error</Text>
+              <Text style={styles.title}>Configuration Error</Text>
               <Text style={styles.subtitle}>
                 The app is missing required environment variables
               </Text>

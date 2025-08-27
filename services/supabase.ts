@@ -112,7 +112,7 @@ export const getSlangWords = async (limit = 20, offset = 0, search?: string) => 
 
 export const getWordById = async (id: string) => {
   const { data, error } = await supabase
-    .from('words')
+    .from('slang_words')
     .select('*')
     .eq('id', id)
     .single();

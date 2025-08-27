@@ -1,4 +1,4 @@
-export const COLORS = {
+﻿export const COLORS = {
   primary: {
     50: '#f0f9ff',
     100: '#e0f2fe',
@@ -125,12 +125,12 @@ export const BORDER_RADIUS = {
 } as const;
 
 export const LEVELS = {
-  BRONZE: { min: 0, max: 99, name: 'Brons', icon: '🥉' },
-  SILVER: { min: 100, max: 299, name: 'Zilver', icon: '🥈' },
-  GOLD: { min: 300, max: 599, name: 'Goud', icon: '🥇' },
-  PLATINUM: { min: 600, max: 999, name: 'Platinum', icon: '💎' },
-  DIAMOND: { min: 1000, max: 1999, name: 'Diamant', icon: '💠' },
-  MASTER: { min: 2000, max: 9999, name: 'Meester', icon: '👑' },
+  BRONZE: { min: 0, max: 99, name: 'Brons', icon: 'BRONZE' },
+  SILVER: { min: 100, max: 299, name: 'Zilver', icon: 'SILVER' },
+  GOLD: { min: 300, max: 599, name: 'Goud', icon: 'GOLD' },
+  PLATINUM: { min: 600, max: 999, name: 'Platinum', icon: 'PLATINUM' },
+  DIAMOND: { min: 1000, max: 1999, name: 'Diamant', icon: 'DIAMOND' },
+  MASTER: { min: 2000, max: 9999, name: 'Meester', icon: 'MASTER' },
 } as const;
 
 export const QUIZ_SETTINGS = {

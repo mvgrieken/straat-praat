@@ -2,6 +2,14 @@
 .expo/
 dist/
 web-build/
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Additional web build artifacts
+web-clean/
+web-final/
+dist-web/
 .vercel
 .netlify
 

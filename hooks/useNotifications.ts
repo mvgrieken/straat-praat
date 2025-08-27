@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+﻿import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
@@ -148,7 +148,7 @@ export function useNotifications() {
     await Notifications.scheduleNotificationAsync({
       identifier: 'word-of-day',
       content: {
-        title: '📚 Woord van de Dag',
+title: 'Woord van de dag',
         body: 'Leer vandaag een nieuw slangwoord!',
         data: { type: NOTIFICATION_TYPES.WORD_OF_DAY },
       },
@@ -170,7 +170,7 @@ export function useNotifications() {
     await Notifications.scheduleNotificationAsync({
       identifier: 'streak-reminder',
       content: {
-        title: '🔥 Behoud je reeks!',
+title: 'Behoud je reeks!',
         body: 'Je hebt vandaag nog niets geleerd. Houd je reeks vol!',
         data: { type: NOTIFICATION_TYPES.STREAK_REMINDER },
       },
@@ -192,7 +192,7 @@ export function useNotifications() {
     await Notifications.scheduleNotificationAsync({
       identifier: 'quiz-reminder',
       content: {
-        title: '🎮 Quiz tijd!',
+title: 'Quiz tijd!',
         body: 'Zin in een uitdaging? Doe een slangquiz!',
         data: { type: NOTIFICATION_TYPES.QUIZ_REMINDER },
       },
@@ -231,7 +231,7 @@ export function useNotifications() {
 
     await sendImmediateNotification({
       type: NOTIFICATION_TYPES.ACHIEVEMENT_UNLOCKED,
-      title: '🏆 Prestatie ontgrendeld!',
+title: 'Prestatie ontgrendeld!',
       body: `Je hebt "${achievementName}" behaald!`,
       data: { type: NOTIFICATION_TYPES.ACHIEVEMENT_UNLOCKED, achievementName } as Record<string, any>,
     });

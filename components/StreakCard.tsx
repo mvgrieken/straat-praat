@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+﻿import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 // LinearGradient can be used for enhanced UI in future versions
@@ -135,7 +135,7 @@ export function StreakCard() {
                   fontSize: settings.fontSize === 'large' ? 14 : 12,
                 }}
               >
-                Deel 🎉
+                Deel je reeks
               </Text>
             </TouchableOpacity>
           </View>
@@ -165,10 +165,11 @@ export function StreakCard() {
         >
           {currentStreak < 30 
             ? `${30 - currentStreak} dagen tot volgende niveau`
-            : 'Maximaal niveau bereikt! 🏆'
+            : 'Maximaal niveau bereikt! 🎉'
           }
         </Text>
       </View>
     </View>
   );
 }
+

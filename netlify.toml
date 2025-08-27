@@ -5,3 +5,8 @@
 [build.environment]
   NODE_VERSION = "20"
   EXPO_USE_STATIC = "1"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { validateEnvironment } from '@/src/env';
 
 export interface TranslationRequest {
   text: string;
@@ -34,8 +35,10 @@ export class TranslationService {
         throw new Error('User not authenticated');
       }
 
+      const { supabaseUrl } = validateEnvironment();
+
       const response = await fetch(
-        `https://trrsgvxoylhcudtiimvb.supabase.co/functions/v1/translate-text`,
+        `${supabaseUrl}/functions/v1/translate-text`,
         {
           method: 'POST',
           headers: {
@@ -70,8 +73,10 @@ export class TranslationService {
         throw new Error('User not authenticated');
       }
 
+      const { supabaseUrl } = validateEnvironment();
+
       const response = await fetch(
-        `https://trrsgvxoylhcudtiimvb.supabase.co/functions/v1/translation-feedback`,
+        `${supabaseUrl}/functions/v1/translation-feedback`,
         {
           method: 'POST',
           headers: {

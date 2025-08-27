@@ -4,26 +4,40 @@ import Constants from 'expo-constants';
  * Helper to require environment variables and fail visibly if missing
  */
 export function requireEnv(name: string): string {
-  // First try Expo config extra
-  const fromExpoConfig = Constants.expoConfig?.extra?.[name.replace('EXPO_PUBLIC_', '')];
-  
-  // Then try process.env
+  // Allow multiple ways to provide config via Expo extras or process.env
+  const extra = (Constants.expoConfig?.extra ?? {}) as Record<string, any>;
+  const withoutPrefix = name.replace('EXPO_PUBLIC_', ''); // e.g. SUPABASE_URL
+
+  // Convert SUPABASE_ANON_KEY -> supabaseAnonKey
+  const toCamel = (key: string) =>
+    key
+      .toLowerCase()
+      .split('_')
+      .map((p, i) => (i === 0 ? p : p.charAt(0).toUpperCase() + p.slice(1)))
+      .join('');
+
+  const camelKey = toCamel(withoutPrefix);
+
+  // Then try process.env and different extra shapes
   const fromProcessEnv = process.env[name];
-  
-  const value = fromExpoConfig || fromProcessEnv;
-  
+  const fromExpoCamel = extra[camelKey];
+  const fromExpoUpper = extra[withoutPrefix];
+  const fromExpoExact = extra[name];
+
+  const value = fromExpoCamel || fromExpoUpper || fromExpoExact || fromProcessEnv;
+
   if (!value) {
     throw new Error(
       `Missing required environment variable: ${name}\n\n` +
-      `To fix this:\n` +
-      `1. Add ${name} to your .env.local file\n` +
-      `2. Or add it to app.json under "extra"\n` +
-      `3. Or set it in your Netlify dashboard under "Environment variables"\n\n` +
-      `Example:\n${name}=your_value_here`
+        `To fix this:\n` +
+        `1. Add ${name} to your .env.local file\n` +
+        `2. Or add it to app.json under "extra" (as ${withoutPrefix} or ${camelKey})\n` +
+        `3. Or set it in your Netlify dashboard under "Environment variables"\n\n` +
+        `Example:\n${name}=your_value_here`
     );
   }
-  
-  return value;
+
+  return value as string;
 }
 
 /**

@@ -91,10 +91,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let userProfile: User;
 
       if (!profile) {
-        // Create new user profile
-        const newProfile = {
+        // Create new user profile (match DB schema: no unknown columns like email)
+        const newProfileDb = {
           id: supabaseUser.id,
-          email: supabaseUser.email ?? null,
           display_name: supabaseUser.user_metadata?.displayName ?? null,
           avatar_url: supabaseUser.user_metadata?.avatar_url ?? null,
           level: 1,
@@ -107,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const { data: createdProfile, error: createError } = await supabase
           .from('profiles')
-          .insert([newProfile])
+          .insert([newProfileDb])
           .select()
           .single();
 
@@ -253,20 +252,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const updatedProfile = {
-        ...user,
-        ...updates,
-        updatedAt: new Date().toISOString(),
+      // Map app schema -> DB schema for update
+      const dbUpdate: Record<string, any> = {
+        display_name: updates.displayName ?? user.displayName,
+        avatar_url: updates.avatarUrl ?? user.avatarUrl,
+        level: updates.level ?? user.level,
+        total_points: updates.totalPoints ?? user.totalPoints,
+        current_streak: updates.currentStreak ?? user.currentStreak,
+        longest_streak: updates.longestStreak ?? user.longestStreak,
+        updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
+      const { data: updatedRows, error } = await supabase
         .from('profiles')
-        .update(updatedProfile)
-        .eq('id', user.id);
+        .update(dbUpdate)
+        .eq('id', user.id)
+        .select()
+        .single();
 
       if (error) {
         throw new Error(error.message);
       }
+
+      // Map back DB -> app schema
+      const updatedProfile: User = {
+        id: user.id,
+        email: user.email,
+        displayName: updatedRows.display_name,
+        avatarUrl: updatedRows.avatar_url,
+        level: updatedRows.level,
+        totalPoints: updatedRows.total_points,
+        currentStreak: updatedRows.current_streak,
+        longestStreak: updatedRows.longest_streak,
+        createdAt: updatedRows.created_at,
+        updatedAt: updatedRows.updated_at,
+      };
 
       setUser(updatedProfile);
 
