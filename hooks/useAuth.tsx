@@ -6,6 +6,12 @@ import { Platform } from 'react-native';
 import { STORAGE_KEYS } from '@/constants';
 import { supabase } from '@/services/supabase';
 import { User } from '@/types';
+import { AuthAnalyticsService } from '@/services/authAnalyticsService';
+import { LoginAttemptTracker } from '@/services/loginAttemptTracker';
+import { SessionManager } from '@/services/sessionManager';
+import { SecurityMonitor } from '@/services/securityMonitor';
+import { MFAService } from '@/services/mfaService';
+import { SecurityReportingService } from '@/services/securityReportingService';
 
 interface AuthContextType {
   user: User | null;
@@ -16,6 +22,19 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
+  // Enhanced security features
+  getLoginAttempts: () => Promise<number>;
+  getAccountStatus: (email: string) => Promise<any>;
+  unlockAccount: (email: string) => Promise<boolean>;
+  getSecurityHealth: () => Promise<any>;
+  // MFA features
+  isMFAEnabled: (userId: string) => Promise<boolean>;
+  setupMFA: (userId: string, email: string) => Promise<any>;
+  verifyMFACode: (userId: string, email: string, code: string) => Promise<any>;
+  verifyBackupCode: (userId: string, email: string, backupCode: string) => Promise<any>;
+  // Security reporting features
+  generateSecurityReport: (startDate: Date, endDate: Date) => Promise<any>;
+  getSecurityReports: (type?: string, limit?: number) => Promise<any[]>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,11 +45,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Initialize security monitoring
+    SecurityMonitor.startMonitoring(5); // Check every 5 minutes
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        loadUserProfile(session.user);
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session) {
+        // Check if session needs refresh
+        const refreshedSession = await SessionManager.refreshSessionIfNeeded(session);
+        setSession(refreshedSession);
+        if (refreshedSession?.user) {
+          await loadUserProfile(refreshedSession.user);
+        } else {
+          setLoading(false);
+        }
       } else {
         setLoading(false);
       }
@@ -40,11 +68,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      
-      if (session?.user) {
-        await loadUserProfile(session.user);
+      if (session) {
+        // Check if session needs refresh
+        const refreshedSession = await SessionManager.refreshSessionIfNeeded(session);
+        setSession(refreshedSession);
+        
+        if (refreshedSession?.user) {
+          await loadUserProfile(refreshedSession.user);
+          // Track successful login
+          await AuthAnalyticsService.trackLoginAttempt(refreshedSession.user.id, {
+            email: refreshedSession.user.email || '',
+            success: true
+          });
+        }
       } else {
+        setSession(null);
         setUser(null);
         // Clear local storage on sign out
         if (Platform.OS !== 'web') {
@@ -57,7 +95,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Set up periodic session refresh
+    const refreshInterval = setInterval(async () => {
+      if (session?.user) {
+        const refreshedSession = await SessionManager.refreshSessionIfNeeded(session);
+        if (refreshedSession && refreshedSession !== session) {
+          setSession(refreshedSession);
+        }
+      }
+    }, 4 * 60 * 1000); // Check every 4 minutes
+
+    return () => {
+      subscription.unsubscribe();
+      SecurityMonitor.stopMonitoring();
+      clearInterval(refreshInterval);
+    };
   }, []);
 
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
@@ -179,14 +231,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
+      
+      // Check login attempt tracking before proceeding
+      const attemptResult = await LoginAttemptTracker.trackLoginAttempt(email, false);
+      if (attemptResult.locked) {
+        throw new Error(attemptResult.message);
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
       });
 
       if (error) {
+        // Track failed login attempt
+        await LoginAttemptTracker.trackLoginAttempt(email, false);
+        await AuthAnalyticsService.trackLoginAttempt(null, {
+          email: email.trim().toLowerCase(),
+          success: false,
+          failureReason: error.message
+        });
         throw new Error(error.message);
       }
+
+      // Track successful login attempt
+      await LoginAttemptTracker.trackLoginAttempt(email, true);
+      await AuthAnalyticsService.trackLoginAttempt(data.user.id, {
+        email: email.trim().toLowerCase(),
+        success: true
+      });
 
       return data;
     } catch (error) {
@@ -318,6 +391,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Enhanced security methods
+  const getLoginAttempts = async (): Promise<number> => {
+    if (!user?.email) return 0;
+    return await AuthAnalyticsService.getFailedLoginAttempts(user.id, 24);
+  };
+
+  const getAccountStatus = async (email: string): Promise<any> => {
+    return await LoginAttemptTracker.getAccountStatus(email);
+  };
+
+  const unlockAccount = async (email: string): Promise<boolean> => {
+    return await LoginAttemptTracker.unlockAccount(email);
+  };
+
+  const getSecurityHealth = async (): Promise<any> => {
+    return await SecurityMonitor.checkSystemHealth();
+  };
+
+  // MFA methods
+  const isMFAEnabled = async (userId: string): Promise<boolean> => {
+    return await MFAService.isMFAEnabled(userId);
+  };
+
+  const setupMFA = async (userId: string, email: string): Promise<any> => {
+    return await MFAService.setupMFA(userId, email);
+  };
+
+  const verifyMFACode = async (userId: string, email: string, code: string): Promise<any> => {
+    return await MFAService.verifyMFACode(userId, email, code);
+  };
+
+  const verifyBackupCode = async (userId: string, email: string, backupCode: string): Promise<any> => {
+    return await MFAService.verifyBackupCode(userId, email, backupCode);
+  };
+
+  // Security reporting methods
+  const generateSecurityReport = async (startDate: Date, endDate: Date): Promise<any> => {
+    return await SecurityReportingService.generateComprehensiveReport(startDate, endDate);
+  };
+
+  const getSecurityReports = async (type?: string, limit?: number): Promise<any[]> => {
+    return await SecurityReportingService.getSavedReports(type, limit);
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -327,6 +444,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     resetPassword,
     updateProfile,
+    // Enhanced security features
+    getLoginAttempts,
+    getAccountStatus,
+    unlockAccount,
+    getSecurityHealth,
+    // MFA features
+    isMFAEnabled,
+    setupMFA,
+    verifyMFACode,
+    verifyBackupCode,
+    // Security reporting features
+    generateSecurityReport,
+    getSecurityReports,
   };
 
   return (

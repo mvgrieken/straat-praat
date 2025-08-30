@@ -20,7 +20,9 @@ import TextField from '@/components/forms/TextField';
 
 export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn } = useAuth();
+  const [loginAttempts, setLoginAttempts] = useState<number>(0);
+  const [accountStatus, setAccountStatus] = useState<any>(null);
+  const { signIn, getAccountStatus } = useAuth();
 
   const {
     control,
@@ -39,6 +41,20 @@ export default function LoginScreen() {
     
     try {
       setIsLoading(true);
+      
+      // Check account status before attempting login
+      const status = await getAccountStatus(data.email);
+      setAccountStatus(status);
+      
+      if (status.locked) {
+        const lockoutTime = status.lockoutExpiry ? new Date(status.lockoutExpiry).toLocaleTimeString() : 'onbekend';
+        Alert.alert(
+          'Account geblokkeerd', 
+          `Je account is geblokkeerd vanwege te veel mislukte inlogpogingen. Probeer opnieuw na ${lockoutTime}.`
+        );
+        return;
+      }
+      
       await signIn(data.email, data.password);
       
       // Navigation will be handled by AuthProvider
@@ -55,9 +71,16 @@ export default function LoginScreen() {
           errorMessage = 'Bevestig eerst je e-mailadres via de link in je e-mail';
         } else if (error.message.includes('Too many requests')) {
           errorMessage = 'Te veel inlogpogingen. Probeer het later opnieuw';
+        } else if (error.message.includes('Account is locked')) {
+          errorMessage = 'Je account is geblokkeerd vanwege te veel mislukte inlogpogingen.';
         } else {
           errorMessage = error.message;
         }
+      }
+      
+      // Update login attempts display
+      if (accountStatus) {
+        setLoginAttempts(accountStatus.failedAttempts);
       }
       
       Alert.alert('Inloggen mislukt', errorMessage);
@@ -106,6 +129,19 @@ export default function LoginScreen() {
               error={errors.password?.message}
               required
             />
+
+            {loginAttempts > 0 && (
+              <View style={styles.attemptsContainer}>
+                <Text style={styles.attemptsText}>
+                  Mislukte inlogpogingen: {loginAttempts}/5
+                </Text>
+                {loginAttempts >= 3 && (
+                  <Text style={styles.warningText}>
+                    ⚠️ Na 5 mislukte pogingen wordt je account geblokkeerd
+                  </Text>
+                )}
+              </View>
+            )}
 
             <TouchableOpacity
               style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
@@ -203,5 +239,24 @@ const styles = StyleSheet.create({
   signupText: {
     color: '#6B7280',
     fontSize: 16,
+  },
+  attemptsContainer: {
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: '#FEF3C7',
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#F59E0B',
+  },
+  attemptsText: {
+    fontSize: 14,
+    color: '#92400E',
+    fontWeight: '500',
+  },
+  warningText: {
+    fontSize: 12,
+    color: '#DC2626',
+    marginTop: 4,
+    fontWeight: '500',
   },
 });

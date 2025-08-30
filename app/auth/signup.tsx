@@ -18,9 +18,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { signupSchema, SignupFormData } from '@/src/lib/validations/auth';
 import TextField from '@/components/forms/TextField';
 import CheckboxField from '@/components/forms/CheckboxField';
+import PasswordStrengthIndicator from '@/components/PasswordStrengthIndicator';
 
 export default function SignupScreen() {
   const [isLoading, setIsLoading] = useState(false);
+  const [password, setPassword] = useState('');
   const { signUp, signIn } = useAuth();
 
   const {
@@ -168,7 +170,10 @@ export default function SignupScreen() {
               autoComplete="new-password"
               error={errors.password?.message}
               required
+              onChangeText={(text) => setPassword(text)}
             />
+            
+            <PasswordStrengthIndicator password={password} />
 
             <TextField
               name="confirmPassword"
