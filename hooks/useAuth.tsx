@@ -1,38 +1,43 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Session, User as SupabaseUser } from '@supabase/supabase-js';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Session, User } from '@supabase/supabase-js';
 
-import { STORAGE_KEYS } from '@/constants';
 import { supabase } from '@/services/supabase';
-import { User } from '@/types';
 import { AuthAnalyticsService } from '@/services/authAnalyticsService';
-import { LoginAttemptTracker } from '@/services/loginAttemptTracker';
 import { SessionManager } from '@/services/sessionManager';
+import { LoginAttemptTracker } from '@/services/loginAttemptTracker';
 import { SecurityMonitor } from '@/services/securityMonitor';
 import { MFAService } from '@/services/mfaService';
 import { SecurityReportingService } from '@/services/securityReportingService';
+
+const STORAGE_KEYS = {
+  USER_PROFILE: 'user_profile',
+};
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ user: SupabaseUser; session: Session }>;
-  signUp: (email: string, password: string, displayName?: string) => Promise<{ user: SupabaseUser | null; session: Session | null }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
-  updateProfile: (updates: Partial<User>) => Promise<void>;
-  // Enhanced security features
+  resetPassword: (email: string) => Promise<{ error: any }>;
+  updatePassword: (password: string) => Promise<{ error: any }>;
+  
+  // Enhanced security methods
   getLoginAttempts: () => Promise<number>;
   getAccountStatus: (email: string) => Promise<any>;
   unlockAccount: (email: string) => Promise<boolean>;
   getSecurityHealth: () => Promise<any>;
-  // MFA features
+  
+  // MFA methods
   isMFAEnabled: (userId: string) => Promise<boolean>;
   setupMFA: (userId: string, email: string) => Promise<any>;
   verifyMFACode: (userId: string, email: string, code: string) => Promise<any>;
   verifyBackupCode: (userId: string, email: string, backupCode: string) => Promise<any>;
-  // Security reporting features
+  
+  // Security reporting methods
   generateSecurityReport: (startDate: Date, endDate: Date) => Promise<any>;
   getSecurityReports: (type?: string, limit?: number) => Promise<any[]>;
 }
@@ -45,8 +50,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize security monitoring
-    SecurityMonitor.startMonitoring(5); // Check every 5 minutes
+    // Initialize security monitoring with new instance-based approach
+    const securityMonitor = SecurityMonitor.getInstance();
+    securityMonitor.startMonitoring().catch(error => {
+      console.warn('Failed to start security monitoring:', error);
+    });
 
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -97,297 +105,191 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Set up periodic session refresh
     const refreshInterval = setInterval(async () => {
-      if (session?.user) {
+      if (session) {
         const refreshedSession = await SessionManager.refreshSessionIfNeeded(session);
-        if (refreshedSession && refreshedSession !== session) {
+        if (refreshedSession) {
           setSession(refreshedSession);
         }
       }
-    }, 4 * 60 * 1000); // Check every 4 minutes
+    }, 1000 * 60 * 15); // Refresh every 15 minutes
 
     return () => {
       subscription.unsubscribe();
-      SecurityMonitor.stopMonitoring();
       clearInterval(refreshInterval);
+      // Stop security monitoring on cleanup
+      const securityMonitor = SecurityMonitor.getInstance();
+      securityMonitor.stopMonitoring();
     };
   }, []);
 
-  const loadUserProfile = async (supabaseUser: SupabaseUser) => {
+  const loadUserProfile = async (authUser: User) => {
     try {
-      // First try to load from cache
-      let cachedProfile = null;
+      // Try to load from local storage first
+      let profileData = null;
       if (Platform.OS !== 'web') {
-        const cached = await AsyncStorage.getItem(STORAGE_KEYS.USER_PROFILE);
-        cachedProfile = cached ? JSON.parse(cached) : null;
+        const stored = await AsyncStorage.getItem(STORAGE_KEYS.USER_PROFILE);
+        profileData = stored ? JSON.parse(stored) : null;
       } else {
-        const cached = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
-        cachedProfile = cached ? JSON.parse(cached) : null;
+        const stored = localStorage.getItem(STORAGE_KEYS.USER_PROFILE);
+        profileData = stored ? JSON.parse(stored) : null;
       }
 
-      if (cachedProfile && cachedProfile.id === supabaseUser.id) {
-        setUser(cachedProfile);
+      // If we have cached data and it's for the same user, use it
+      if (profileData && profileData.id === authUser.id) {
+        setUser(profileData);
+        return;
       }
 
-      // Fetch fresh profile from database
+      // Fetch fresh data from database
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', supabaseUser.id)
+        .eq('id', authUser.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
-        // PGRST116 is "not found" - we'll create the profile
-        throw error;
-      }
-
-      let userProfile: User;
-
-      if (!profile) {
-        // Create new user profile (match DB schema: no unknown columns like email)
-        const newProfileDb = {
-          id: supabaseUser.id,
-          display_name: supabaseUser.user_metadata?.displayName ?? null,
-          avatar_url: supabaseUser.user_metadata?.avatar_url ?? null,
+      if (error) {
+        console.error('Error loading user profile:', error);
+        // Use basic user data if profile fetch fails
+        setUser({
+          ...authUser,
+          totalPoints: 0,
           level: 1,
-          total_points: 0,
-          current_streak: 0,
-          longest_streak: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-
-        const { data: createdProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert([newProfileDb])
-          .select()
-          .single();
-
-        if (createError) {
-          throw createError;
-        }
-
-        // Map database schema to application schema
-        userProfile = {
-          id: createdProfile.id,
-          email: supabaseUser.email ?? null,
-          displayName: createdProfile.display_name,
-          avatarUrl: createdProfile.avatar_url,
-          level: createdProfile.level,
-          totalPoints: createdProfile.total_points,
-          currentStreak: createdProfile.current_streak,
-          longestStreak: createdProfile.longest_streak,
-          createdAt: createdProfile.created_at,
-          updatedAt: createdProfile.updated_at,
-        };
-      } else {
-        // Map database schema to application schema  
-        userProfile = {
-          id: profile.id,
-          email: supabaseUser.email ?? null,
-          displayName: profile.display_name,
-          avatarUrl: profile.avatar_url,
-          level: profile.level,
-          totalPoints: profile.total_points,
-          currentStreak: profile.current_streak,
-          longestStreak: profile.longest_streak,
-          createdAt: profile.created_at,
-          updatedAt: profile.updated_at,
-        };
+          currentStreak: 0,
+          longestStreak: 0,
+        });
+        return;
       }
 
-      setUser(userProfile);
-
-      // Cache profile
-      if (Platform.OS !== 'web') {
-        await AsyncStorage.setItem(
-          STORAGE_KEYS.USER_PROFILE,
-          JSON.stringify(userProfile)
-        );
-      } else {
-        localStorage.setItem(
-          STORAGE_KEYS.USER_PROFILE,
-          JSON.stringify(userProfile)
-        );
-      }
-    } catch (error) {
-      console.error('Error loading user profile:', error);
-      // Create a minimal profile from auth data
-      const fallbackProfile: User = {
-        id: supabaseUser.id,
-        email: supabaseUser.email ?? null,
-        displayName: supabaseUser.user_metadata?.displayName ?? null,
-        avatarUrl: null,
-        level: 1,
-        totalPoints: 0,
-        currentStreak: 0,
-        longestStreak: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      // Combine auth user with profile data
+      const userWithProfile = {
+        ...authUser,
+        ...profile,
       };
-      setUser(fallbackProfile);
+
+      setUser(userWithProfile);
+
+      // Cache the profile data
+      if (Platform.OS !== 'web') {
+        await AsyncStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(userWithProfile));
+      } else {
+        localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(userWithProfile));
+      }
+
+    } catch (error) {
+      console.error('Error in loadUserProfile:', error);
+      setUser(authUser);
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
-      setLoading(true);
-      
-      // Check login attempt tracking before proceeding
-      const attemptResult = await LoginAttemptTracker.trackLoginAttempt(email, false);
-      if (attemptResult.locked) {
-        throw new Error(attemptResult.message);
+      // Check if account is locked
+      const accountStatus = await LoginAttemptTracker.getAccountStatus(email);
+      if (accountStatus.isLocked) {
+        return { error: { message: 'Account is temporarily locked. Please try again later.' } };
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
+        email,
         password,
       });
 
       if (error) {
         // Track failed login attempt
-        await LoginAttemptTracker.trackLoginAttempt(email, false);
-        await AuthAnalyticsService.trackLoginAttempt(null, {
-          email: email.trim().toLowerCase(),
-          success: false,
-          failureReason: error.message
-        });
-        throw new Error(error.message);
+        if (data?.user?.id) {
+          await AuthAnalyticsService.trackLoginAttempt(data.user.id, {
+            email,
+            success: false,
+            error: error.message
+          });
+        }
+        return { error };
       }
 
-      // Track successful login attempt
-      await LoginAttemptTracker.trackLoginAttempt(email, true);
-      await AuthAnalyticsService.trackLoginAttempt(data.user.id, {
-        email: email.trim().toLowerCase(),
-        success: true
-      });
+      // Track successful login
+      if (data.user) {
+        await AuthAnalyticsService.trackLoginAttempt(data.user.id, {
+          email,
+          success: true
+        });
+      }
 
-      return data;
+      return { error: null };
     } catch (error) {
-      setLoading(false);
-      throw error;
+      console.error('Sign in error:', error);
+      return { error };
     }
   };
 
-  const signUp = async (email: string, password: string, displayName?: string) => {
-    console.log('useAuth signUp called with:', { email, password: '***', displayName });
+  const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      console.log('Setting loading to true in useAuth');
-      setLoading(true);
-      console.log('Calling supabase.auth.signUp');
       const { data, error } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
+        email,
         password,
         options: {
           data: {
-            displayName: displayName?.trim() || null,
+            full_name: fullName,
+            displayName: fullName,
           },
-          emailRedirectTo: Platform.OS === 'web' 
-            ? `${window.location.origin}/auth/callback`
-            : 'straat-praat://auth/callback',
         },
       });
-      console.log('Supabase signUp response:', { data, error });
 
       if (error) {
-        console.error('Supabase signUp error:', error);
-        throw new Error(error.message);
+        return { error };
       }
 
-      console.log('SignUp successful, returning data');
-      return data;
+      // Track successful registration
+      if (data.user) {
+        await AuthAnalyticsService.trackRegistration(data.user.id, {
+          email,
+          fullName
+        });
+      }
+
+      return { error: null };
     } catch (error) {
-      console.error('useAuth signUp catch error:', error);
-      setLoading(false);
-      throw error;
+      console.error('Sign up error:', error);
+      return { error };
     }
   };
 
   const signOut = async () => {
     try {
+      // Track sign out
+      if (user) {
+        await AuthAnalyticsService.trackLogout(user.id);
+      }
+
       const { error } = await supabase.auth.signOut();
       if (error) {
-        throw new Error(error.message);
+        console.error('Sign out error:', error);
       }
     } catch (error) {
-      console.error('Error signing out:', error);
-      throw error;
+      console.error('Sign out error:', error);
     }
   };
 
   const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      email.trim().toLowerCase(),
-      {
-        redirectTo: Platform.OS === 'web'
-          ? `${window.location.origin}/auth/reset-password`
-          : 'straat-praat://auth/reset-password',
-      }
-    );
-
-    if (error) {
-      throw new Error(error.message);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/update-password`,
+      });
+      return { error };
+    } catch (error) {
+      console.error('Reset password error:', error);
+      return { error };
     }
   };
 
-  const updateProfile = async (updates: Partial<User>) => {
-    if (!user) {
-      throw new Error('No user logged in');
-    }
-
+  const updatePassword = async (password: string) => {
     try {
-      // Map app schema -> DB schema for update
-      const dbUpdate: Record<string, any> = {
-        display_name: updates.displayName ?? user.displayName,
-        avatar_url: updates.avatarUrl ?? user.avatarUrl,
-        level: updates.level ?? user.level,
-        total_points: updates.totalPoints ?? user.totalPoints,
-        current_streak: updates.currentStreak ?? user.currentStreak,
-        longest_streak: updates.longestStreak ?? user.longestStreak,
-        updated_at: new Date().toISOString(),
-      };
-
-      const { data: updatedRows, error } = await supabase
-        .from('profiles')
-        .update(dbUpdate)
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      // Map back DB -> app schema
-      const updatedProfile: User = {
-        id: user.id,
-        email: user.email ?? null,
-        displayName: updatedRows.display_name,
-        avatarUrl: updatedRows.avatar_url,
-        level: updatedRows.level,
-        totalPoints: updatedRows.total_points,
-        currentStreak: updatedRows.current_streak,
-        longestStreak: updatedRows.longest_streak,
-        createdAt: updatedRows.created_at,
-        updatedAt: updatedRows.updated_at,
-      };
-
-      setUser(updatedProfile);
-
-      // Update cache
-      if (Platform.OS !== 'web') {
-        await AsyncStorage.setItem(
-          STORAGE_KEYS.USER_PROFILE,
-          JSON.stringify(updatedProfile)
-        );
-      } else {
-        localStorage.setItem(
-          STORAGE_KEYS.USER_PROFILE,
-          JSON.stringify(updatedProfile)
-        );
-      }
+      const { error } = await supabase.auth.updateUser({
+        password,
+      });
+      return { error };
     } catch (error) {
-      console.error('Error updating profile:', error);
-      throw error;
+      console.error('Update password error:', error);
+      return { error };
     }
   };
 
@@ -406,7 +308,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const getSecurityHealth = async (): Promise<any> => {
-    return await SecurityMonitor.checkSystemHealth();
+    const securityMonitor = SecurityMonitor.getInstance();
+    return await securityMonitor.getSecurityMetrics();
   };
 
   // MFA methods
@@ -443,27 +346,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     resetPassword,
-    updateProfile,
-    // Enhanced security features
+    updatePassword,
     getLoginAttempts,
     getAccountStatus,
     unlockAccount,
     getSecurityHealth,
-    // MFA features
     isMFAEnabled,
     setupMFA,
     verifyMFACode,
     verifyBackupCode,
-    // Security reporting features
     generateSecurityReport,
     getSecurityReports,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
