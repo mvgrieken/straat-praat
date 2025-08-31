@@ -1,5 +1,17 @@
 import { TranslationService } from '@/services/translationService';
-import { WordService } from '@/services/wordService';
+
+// Mock Supabase
+jest.mock('@/services/supabase', () => ({
+  supabase: {
+    auth: {
+      getSession: jest.fn(),
+    },
+    functions: {
+      invoke: jest.fn(),
+    },
+    from: jest.fn(),
+  },
+}));
 
 // Mock WordService
 jest.mock('@/services/wordService', () => ({
@@ -8,352 +20,399 @@ jest.mock('@/services/wordService', () => ({
   },
 }));
 
-const mockWordService = WordService as jest.Mocked<typeof WordService>;
-
 describe('TranslationService', () => {
+  const mockSupabase = require('@/services/supabase').supabase;
+  const mockWordService = require('@/services/wordService').WordService;
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('translateText', () => {
-    it('should translate text using database lookup successfully', async () => {
-      const mockSearchResult = [
-        {
-          word: {
-            id: '1',
-            word: 'bruh',
-            meaning: 'jongen, broer',
-            example: 'Hey bruh, alles goed?',
-            audio_url: null,
-            difficulty: 'easy',
-            category: 'general',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z',
-          },
-          relevance: 1.0,
-          matchType: 'exact' as const,
-        },
-      ];
+    it('should use AI translation when available', async () => {
+      const mockSession = {
+        user: { id: 'user-123' },
+        access_token: 'token-123',
+      };
 
-      mockWordService.searchWords.mockResolvedValue(mockSearchResult);
+      const mockAIResponse = {
+        translation: 'jongen',
+        confidence: 0.85,
+        source: 'ai',
+        model: 'gpt-4',
+        explanation: 'AI translation using GPT-4',
+      };
 
-      const result = await TranslationService.translateText('bruh', 'formal');
+      mockSupabase.auth.getSession.mockResolvedValue({
+        data: { session: mockSession },
+        error: null,
+      });
 
-      expect(mockWordService.searchWords).toHaveBeenCalledWith('bruh', 5);
-      expect(result.translation).toBe('jongen, broer');
-      expect(result.confidence).toBe(0.95);
-      expect(result.source).toBe('database');
-      expect(result.alternatives).toHaveLength(1);
-      expect(result.explanation).toContain('Found in database');
-    });
-
-    it('should translate formal to slang successfully', async () => {
-      const mockSearchResult = [
-        {
-          word: {
-            id: '1',
-            word: 'bruh',
-            meaning: 'jongen, broer',
-            example: 'Hey bruh, alles goed?',
-            audio_url: null,
-            difficulty: 'easy',
-            category: 'general',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z',
-          },
-          relevance: 1.0,
-          matchType: 'exact' as const,
-        },
-      ];
-
-      mockWordService.searchWords.mockResolvedValue(mockSearchResult);
-
-      const result = await TranslationService.translateText('jongen', 'slang');
-
-      expect(result.translation).toBe('bruh');
-      expect(result.confidence).toBe(0.95);
-      expect(result.source).toBe('database');
-    });
-
-    it('should handle multiple search results and suggest alternatives', async () => {
-      const mockSearchResults = [
-        {
-          word: {
-            id: '1',
-            word: 'bruh',
-            meaning: 'jongen, broer',
-            example: 'Hey bruh, alles goed?',
-            audio_url: null,
-            difficulty: 'easy',
-            category: 'general',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z',
-          },
-          relevance: 0.8,
-          matchType: 'partial' as const,
-        },
-        {
-          word: {
-            id: '2',
-            word: 'bro',
-            meaning: 'broer, vriend',
-            example: 'Hey bro, hoe gaat het?',
-            audio_url: null,
-            difficulty: 'easy',
-            category: 'general',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z',
-          },
-          relevance: 0.6,
-          matchType: 'fuzzy' as const,
-        },
-      ];
-
-      mockWordService.searchWords.mockResolvedValue(mockSearchResults);
-
-      const result = await TranslationService.translateText('bru', 'formal');
-
-      expect(result.translation).toBe('jongen, broer');
-      expect(result.confidence).toBe(0.7);
-      expect(result.alternatives).toHaveLength(2);
-      expect(result.explanation).toBe('Similar words found in database');
-    });
-
-    it('should use fallback translation when database lookup fails', async () => {
-      mockWordService.searchWords.mockResolvedValue([]);
+      mockSupabase.functions.invoke.mockResolvedValue({
+        data: mockAIResponse,
+        error: null,
+      });
 
       const result = await TranslationService.translateText('bruh', 'formal');
 
+      expect(mockSupabase.functions.invoke).toHaveBeenCalledWith('translate-text', {
+        body: {
+          text: 'bruh',
+          target: 'formal',
+          context: undefined,
+          userId: 'user-123',
+        },
+        headers: {
+          Authorization: 'Bearer token-123',
+        },
+      });
+
+      expect(result).toEqual(mockAIResponse);
+    });
+
+    it('should fallback to database when AI fails', async () => {
+      const mockSession = {
+        user: { id: 'user-123' },
+        access_token: 'token-123',
+      };
+
+      const mockDatabaseResult = [
+        {
+          word: { word: 'bruh', meaning: 'jongen' },
+          relevance: 1.0,
+          matchType: 'exact',
+        },
+      ];
+
+      mockSupabase.auth.getSession.mockResolvedValue({
+        data: { session: mockSession },
+        error: null,
+      });
+
+      mockSupabase.functions.invoke.mockResolvedValue({
+        data: null,
+        error: { message: 'AI service unavailable' },
+      });
+
+      mockWordService.searchWords.mockResolvedValue(mockDatabaseResult);
+
+      const result = await TranslationService.translateText('bruh', 'formal');
+
+      expect(result).toEqual({
+        translation: 'jongen',
+        confidence: 0.95,
+        alternatives: ['jongen'],
+        explanation: 'Found in database: bruh → jongen',
+        source: 'database',
+      });
+    });
+
+    it('should handle authentication errors gracefully', async () => {
+      mockSupabase.auth.getSession.mockResolvedValue({
+        data: { session: null },
+        error: { message: 'No session' },
+      });
+
+      const mockDatabaseResult = [
+        {
+          word: { word: 'bruh', meaning: 'jongen' },
+          relevance: 1.0,
+          matchType: 'exact',
+        },
+      ];
+
+      mockWordService.searchWords.mockResolvedValue(mockDatabaseResult);
+
+      const result = await TranslationService.translateText('bruh', 'formal');
+
+      expect(result.source).toBe('database');
       expect(result.translation).toBe('jongen');
-      expect(result.confidence).toBe(0.6);
-      expect(result.source).toBe('fallback');
-    });
-
-    it('should handle empty text input', async () => {
-      const result = await TranslationService.translateText('', 'formal');
-
-      expect(result.translation).toBe('');
-      expect(result.confidence).toBe(0.1);
-      expect(result.source).toBe('none');
-    });
-
-    it('should handle WordService errors gracefully', async () => {
-      mockWordService.searchWords.mockRejectedValue(new Error('Database error'));
-
-      const result = await TranslationService.translateText('bruh', 'formal');
-
-      expect(result.translation).toBe('jongen'); // Fallback translation
-      expect(result.confidence).toBe(0.6);
-      expect(result.source).toBe('fallback');
-    });
-
-    it('should handle exact meaning matches', async () => {
-      const mockSearchResult = [
-        {
-          word: {
-            id: '1',
-            word: 'bruh',
-            meaning: 'jongen, broer',
-            example: 'Hey bruh, alles goed?',
-            audio_url: null,
-            difficulty: 'easy',
-            category: 'general',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z',
-          },
-          relevance: 1.0,
-          matchType: 'exact' as const,
-        },
-      ];
-
-      mockWordService.searchWords.mockResolvedValue(mockSearchResult);
-
-      const result = await TranslationService.translateText('jongen, broer', 'slang');
-
-      expect(result.translation).toBe('bruh');
-      expect(result.confidence).toBe(0.95);
-      expect(result.source).toBe('database');
     });
   });
 
   describe('smartTranslate', () => {
-    it('should translate to formal successfully', async () => {
-      const mockSearchResult = [
-        {
-          word: {
-            id: '1',
-            word: 'bruh',
-            meaning: 'jongen, broer',
-            example: 'Hey bruh, alles goed?',
-            audio_url: null,
-            difficulty: 'easy',
-            category: 'general',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z',
-          },
-          relevance: 1.0,
-          matchType: 'exact' as const,
-        },
-      ];
+    it('should translate slang to formal', async () => {
+      const mockAIResponse = {
+        translation: 'jongen',
+        confidence: 0.85,
+        source: 'ai',
+      };
 
-      mockWordService.searchWords.mockResolvedValue(mockSearchResult);
+      mockSupabase.auth.getSession.mockResolvedValue({
+        data: { session: { user: { id: 'user-123' }, access_token: 'token-123' } },
+        error: null,
+      });
+
+      mockSupabase.functions.invoke.mockResolvedValue({
+        data: mockAIResponse,
+        error: null,
+      });
 
       const result = await TranslationService.smartTranslate('bruh', 'to_formal');
 
-      expect(result.translation).toBe('jongen, broer');
-      expect(result.confidence).toBe(0.95);
-      expect(result.source).toBe('database');
+      expect(mockSupabase.functions.invoke).toHaveBeenCalledWith('translate-text', {
+        body: {
+          text: 'bruh',
+          target: 'formal',
+          context: undefined,
+          userId: 'user-123',
+        },
+        headers: {
+          Authorization: 'Bearer token-123',
+        },
+      });
+
+      expect(result).toEqual(mockAIResponse);
     });
 
-    it('should translate to slang successfully', async () => {
-      const mockSearchResult = [
-        {
-          word: {
-            id: '1',
-            word: 'bruh',
-            meaning: 'jongen, broer',
-            example: 'Hey bruh, alles goed?',
-            audio_url: null,
-            difficulty: 'easy',
-            category: 'general',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z',
-          },
-          relevance: 1.0,
-          matchType: 'exact' as const,
-        },
-      ];
+    it('should translate formal to slang', async () => {
+      const mockAIResponse = {
+        translation: 'bruh',
+        confidence: 0.85,
+        source: 'ai',
+      };
 
-      mockWordService.searchWords.mockResolvedValue(mockSearchResult);
+      mockSupabase.auth.getSession.mockResolvedValue({
+        data: { session: { user: { id: 'user-123' }, access_token: 'token-123' } },
+        error: null,
+      });
+
+      mockSupabase.functions.invoke.mockResolvedValue({
+        data: mockAIResponse,
+        error: null,
+      });
 
       const result = await TranslationService.smartTranslate('jongen', 'to_slang');
 
-      expect(result.translation).toBe('bruh');
-      expect(result.confidence).toBe(0.95);
-      expect(result.source).toBe('database');
-    });
+      expect(mockSupabase.functions.invoke).toHaveBeenCalledWith('translate-text', {
+        body: {
+          text: 'jongen',
+          target: 'slang',
+          context: undefined,
+          userId: 'user-123',
+        },
+        headers: {
+          Authorization: 'Bearer token-123',
+        },
+      });
 
-    it('should handle translation errors', async () => {
-      mockWordService.searchWords.mockRejectedValue(new Error('Translation error'));
-
-      await expect(TranslationService.smartTranslate('bruh', 'to_formal'))
-        .rejects.toThrow('Translation error');
+      expect(result).toEqual(mockAIResponse);
     });
   });
 
   describe('batchTranslate', () => {
-    it('should translate multiple texts successfully', async () => {
-      const mockSearchResult = [
-        {
-          word: {
-            id: '1',
-            word: 'bruh',
-            meaning: 'jongen, broer',
-            example: 'Hey bruh, alles goed?',
-            audio_url: null,
-            difficulty: 'easy',
-            category: 'general',
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z',
-          },
-          relevance: 1.0,
-          matchType: 'exact' as const,
-        },
-      ];
+    it('should translate multiple words successfully', async () => {
+      const mockAIResponse = {
+        translation: 'jongen',
+        confidence: 0.85,
+        source: 'ai',
+      };
 
-      mockWordService.searchWords.mockResolvedValue(mockSearchResult);
+      mockSupabase.auth.getSession.mockResolvedValue({
+        data: { session: { user: { id: 'user-123' }, access_token: 'token-123' } },
+        error: null,
+      });
 
-      const result = await TranslationService.batchTranslate(['bruh', 'lit'], 'formal');
+      mockSupabase.functions.invoke.mockResolvedValue({
+        data: mockAIResponse,
+        error: null,
+      });
+
+      const result = await TranslationService.batchTranslate(['bruh', 'cap'], 'formal');
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(2);
-      expect(result.data![0].translation).toBe('jongen, broer');
-      expect(result.data![1].translation).toBe('jongen, broer');
+      expect(result.data[0]).toEqual(mockAIResponse);
+      expect(result.data[1]).toEqual(mockAIResponse);
     });
 
-    it('should handle batch translation errors', async () => {
-      mockWordService.searchWords.mockRejectedValue(new Error('Batch error'));
+    it('should handle partial failures in batch translation', async () => {
+      const mockAIResponse = {
+        translation: 'jongen',
+        confidence: 0.85,
+        source: 'ai',
+      };
 
-      const result = await TranslationService.batchTranslate(['bruh'], 'formal');
+      mockSupabase.auth.getSession.mockResolvedValue({
+        data: { session: { user: { id: 'user-123' }, access_token: 'token-123' } },
+        error: null,
+      });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Failed to translate batch');
-    });
+      // First call succeeds, second fails
+      mockSupabase.functions.invoke
+        .mockResolvedValueOnce({
+          data: mockAIResponse,
+          error: null,
+        })
+        .mockRejectedValueOnce(new Error('AI service error'));
 
-    it('should handle empty batch', async () => {
-      const result = await TranslationService.batchTranslate([], 'formal');
+      const result = await TranslationService.batchTranslate(['bruh', 'cap'], 'formal');
 
       expect(result.success).toBe(true);
-      expect(result.data).toHaveLength(0);
+      expect(result.data).toHaveLength(2);
+      expect(result.data[0]).toEqual(mockAIResponse);
+      expect(result.data[1].source).toBe('fallback');
     });
   });
 
   describe('submitFeedback', () => {
     it('should submit feedback successfully', async () => {
+      const mockSession = {
+        user: { id: 'user-123' },
+        access_token: 'token-123',
+      };
+
+      mockSupabase.auth.getSession.mockResolvedValue({
+        data: { session: mockSession },
+        error: null,
+      });
+
+      mockSupabase.from.mockReturnValue({
+        insert: jest.fn().mockResolvedValue({ error: null }),
+      });
+
       const feedback = {
         original_text: 'bruh',
         translation: 'jongen',
         target: 'formal' as const,
         feedback: 'correct' as const,
-        user_correction: null,
-        notes: null,
       };
 
       const result = await TranslationService.submitFeedback(feedback);
 
       expect(result.success).toBe(true);
+      expect(mockSupabase.from).toHaveBeenCalledWith('translation_feedback');
     });
 
     it('should handle feedback submission errors', async () => {
+      mockSupabase.auth.getSession.mockResolvedValue({
+        data: { session: null },
+        error: { message: 'No session' },
+      });
+
       const feedback = {
         original_text: 'bruh',
         translation: 'jongen',
         target: 'formal' as const,
-        feedback: 'incorrect' as const,
-        user_correction: 'broer',
-        notes: 'Should be broer instead of jongen',
+        feedback: 'correct' as const,
       };
 
       const result = await TranslationService.submitFeedback(feedback);
 
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Authentication required');
     });
   });
 
   describe('getTranslationHistory', () => {
     it('should get translation history successfully', async () => {
-      const result = await TranslationService.getTranslationHistory('user-1', 10);
+      const mockHistory = [
+        {
+          id: '1',
+          original_text: 'bruh',
+          translation: 'jongen',
+          target_language: 'formal',
+          source: 'ai',
+          confidence: 0.85,
+          created_at: '2024-01-01T00:00:00Z',
+        },
+      ];
+
+      mockSupabase.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            order: jest.fn().mockReturnValue({
+              limit: jest.fn().mockResolvedValue({
+                data: mockHistory,
+                error: null,
+              }),
+            }),
+          }),
+        }),
+      });
+
+      const result = await TranslationService.getTranslationHistory('user-123', 10);
 
       expect(result.success).toBe(true);
-      expect(Array.isArray(result.data)).toBe(true);
-    });
-
-    it('should handle translation history errors', async () => {
-      const result = await TranslationService.getTranslationHistory('invalid-user', 10);
-
-      expect(result.success).toBe(false);
+      expect(result.data).toEqual(mockHistory);
     });
   });
 
-  describe('getFallbackTranslation', () => {
-    it('should return fallback translation for known words', () => {
-      const result = TranslationService.getFallbackTranslation('bruh', 'formal');
-      expect(result).toBe('jongen');
+  describe('getTranslationStats', () => {
+    it('should get translation statistics successfully', async () => {
+      const mockLogs = [
+        {
+          original_text: 'bruh',
+          source: 'ai',
+          confidence: 0.85,
+        },
+        {
+          original_text: 'cap',
+          source: 'database',
+          confidence: 0.95,
+        },
+        {
+          original_text: 'bruh',
+          source: 'fallback',
+          confidence: 0.6,
+        },
+      ];
+
+      mockSupabase.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({
+            data: mockLogs,
+            error: null,
+          }),
+        }),
+      });
+
+      const result = await TranslationService.getTranslationStats('user-123');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({
+        totalTranslations: 3,
+        aiTranslations: 1,
+        databaseTranslations: 1,
+        fallbackTranslations: 1,
+        averageConfidence: 0.8,
+        mostTranslatedWords: [
+          { word: 'bruh', count: 2 },
+          { word: 'cap', count: 1 },
+        ],
+      });
+    });
+  });
+
+  describe('fallback translation', () => {
+    it('should use rule-based fallback when no AI or database results', async () => {
+      mockSupabase.auth.getSession.mockResolvedValue({
+        data: { session: null },
+        error: { message: 'No session' },
+      });
+
+      mockWordService.searchWords.mockResolvedValue([]);
+
+      const result = await TranslationService.translateText('bruh', 'formal');
+
+      expect(result.source).toBe('fallback');
+      expect(result.translation).toBe('jongen');
+      expect(result.confidence).toBe(0.6);
     });
 
-    it('should return fallback translation for formal to slang', () => {
-      const result = TranslationService.getFallbackTranslation('jongen', 'slang');
-      expect(result).toBe('bruh');
-    });
+    it('should return original text with low confidence when no translation found', async () => {
+      mockSupabase.auth.getSession.mockResolvedValue({
+        data: { session: null },
+        error: { message: 'No session' },
+      });
 
-    it('should return null for unknown words', () => {
-      const result = TranslationService.getFallbackTranslation('unknown', 'formal');
-      expect(result).toBeNull();
-    });
+      mockWordService.searchWords.mockResolvedValue([]);
 
-    it('should handle case insensitive matching', () => {
-      const result = TranslationService.getFallbackTranslation('BRUH', 'formal');
-      expect(result).toBe('jongen');
+      const result = await TranslationService.translateText('unknownword', 'formal');
+
+      expect(result.source).toBe('fallback');
+      expect(result.translation).toBe('unknownword');
+      expect(result.confidence).toBe(0.1);
     });
   });
 });

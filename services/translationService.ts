@@ -14,25 +14,69 @@ export interface TranslationResponse {
   confidence: number;
   alternatives?: string[];
   explanation?: string;
-  source: 'database' | 'fallback' | 'none';
+  source: 'ai' | 'database' | 'fallback';
+  model?: string;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
 }
 
 export interface TranslationFeedback {
   original_text: string;
   translation: string;
-  target_language: 'formal' | 'slang';
-  feedback_type: 'correct' | 'incorrect' | 'partially_correct';
+  target: 'formal' | 'slang';
+  feedback: 'correct' | 'incorrect';
   user_correction?: string | null;
   notes?: string;
 }
 
 export class TranslationService {
   /**
-   * Smart translation with database lookup and fallback
+   * Smart translation with AI-powered fallback
    */
-  static async translateText(text: string, target: 'formal' | 'slang'): Promise<TranslationResponse> {
+  static async translateText(text: string, target: 'formal' | 'slang', context?: string): Promise<TranslationResponse> {
     try {
+      // Get current user session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        throw new Error('Authentication required for AI translation');
+      }
 
+      // Call the AI edge function
+      const { data, error } = await supabase.functions.invoke('translate-text', {
+        body: {
+          text: text.trim(),
+          target,
+          context,
+          userId: session.user.id
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (error) {
+        console.error('AI translation error:', error);
+        // Fallback to database lookup
+        return await this.fallbackToDatabase(text, target);
+      }
+
+      return data as TranslationResponse;
+
+    } catch (error) {
+      console.error('TranslationService.translateText error:', error);
+      // Fallback to database lookup
+      return await this.fallbackToDatabase(text, target);
+    }
+  }
+
+  /**
+   * Fallback to database lookup when AI fails
+   */
+  private static async fallbackToDatabase(text: string, target: 'formal' | 'slang'): Promise<TranslationResponse> {
+    try {
       // First, try to find the word in our database
       const searchResult = await WordService.searchWords(text, 5);
       
@@ -40,7 +84,7 @@ export class TranslationService {
         // Check for exact matches
         const exactMatch = searchResult.find(result => 
           result.word.word.toLowerCase() === text.toLowerCase() ||
-          result.word.meaning.toLowerCase() === text.toLowerCase()
+          result.word.meaning?.toLowerCase() === text.toLowerCase()
         );
 
         if (exactMatch) {
@@ -49,11 +93,11 @@ export class TranslationService {
             : exactMatch.word.word;
 
           return {
-            translation,
+            translation: translation || text,
             confidence: 0.95,
             alternatives: searchResult.slice(0, 3).map(result => 
               target === 'formal' ? result.word.meaning : result.word.word
-            ),
+            ).filter(Boolean),
             explanation: `Found in database: ${exactMatch.word.word} → ${exactMatch.word.meaning}`,
             source: 'database'
           };
@@ -63,10 +107,10 @@ export class TranslationService {
         if (searchResult.length > 0) {
           const suggestions = searchResult.slice(0, 3).map(result => 
             target === 'formal' ? result.word.meaning : result.word.word
-          );
+          ).filter(Boolean);
 
           return {
-            translation: suggestions[0],
+            translation: suggestions[0] || text,
             confidence: 0.7,
             alternatives: suggestions.slice(1),
             explanation: 'Similar words found in database',
@@ -75,37 +119,66 @@ export class TranslationService {
         }
       }
 
-      // Fallback: Simple rule-based translation for common patterns
-      const fallbackTranslation = this.getFallbackTranslation(text, target);
-      
-      if (fallbackTranslation) {
-        return {
-          translation: fallbackTranslation,
-          confidence: 0.6,
-          explanation: 'Rule-based translation',
-          source: 'fallback'
-        };
-      }
-
-      // Final fallback: return the original text with low confidence
-      return {
-        translation: text,
-        confidence: 0.1,
-        explanation: 'No translation found, returning original text',
-        source: 'none'
-      };
+      // Final fallback: Simple rule-based translation
+      return this.getFallbackTranslation(text, target);
 
     } catch (error) {
-      console.error('TranslationService.translateText error:', error);
+      console.error('Database fallback error:', error);
+      return this.getFallbackTranslation(text, target);
+    }
+  }
+
+  /**
+   * Smart translation - tries AI first, then database fallback
+   */
+  static async smartTranslate(
+    text: string, 
+    direction: 'to_formal' | 'to_slang',
+    context?: string
+  ): Promise<TranslationResponse> {
+    try {
+      const target = direction === 'to_formal' ? 'formal' : 'slang';
       
-      // Return fallback translation on error
-      const fallbackTranslation = this.getFallbackTranslation(text, target);
+      // Use the main translateText method with AI
+      return await this.translateText(text, target, context);
       
+    } catch (error) {
+      console.error('TranslationService.smartTranslate error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Batch translate multiple words
+   */
+  static async batchTranslate(
+    texts: string[],
+    target: 'formal' | 'slang',
+    context?: string
+  ): Promise<ApiResponse<TranslationResponse[]>> {
+    try {
+      const results: TranslationResponse[] = [];
+      
+      for (const text of texts) {
+        try {
+          const result = await this.translateText(text, target, context);
+          results.push(result);
+        } catch (error) {
+          console.error(`Batch translation error for "${text}":`, error);
+          // Add fallback result
+          results.push(this.getFallbackTranslation(text, target));
+        }
+      }
+
       return {
-        translation: fallbackTranslation || text,
-        confidence: fallbackTranslation ? 0.3 : 0.1,
-        explanation: 'Error occurred, using fallback',
-        source: 'fallback'
+        data: results,
+        success: true,
+      };
+    } catch (error) {
+      console.error('Batch translation error:', error);
+      return {
+        error: error instanceof Error ? error.message : 'Batch translation failed',
+        success: false,
       };
     }
   }
@@ -116,22 +189,21 @@ export class TranslationService {
   static async submitFeedback(feedback: TranslationFeedback): Promise<ApiResponse<void>> {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      
       if (!session) {
-        throw new Error('User not authenticated');
+        throw new Error('Authentication required');
       }
 
-      // Store feedback in database
       const { error } = await supabase
         .from('translation_feedback')
         .insert({
           user_id: session.user.id,
           original_text: feedback.original_text,
           translation: feedback.translation,
-          target_language: feedback.target_language,
-          feedback_type: feedback.feedback_type,
+          target_language: feedback.target,
+          feedback_type: feedback.feedback,
           user_correction: feedback.user_correction,
           notes: feedback.notes,
+          created_at: new Date().toISOString(),
         });
 
       if (error) {
@@ -144,7 +216,7 @@ export class TranslationService {
     } catch (error) {
       console.error('TranslationService.submitFeedback error:', error);
       return {
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Failed to submit feedback',
         success: false,
       };
     }
@@ -156,7 +228,7 @@ export class TranslationService {
   static async getTranslationHistory(userId: string, limit: number = 20): Promise<ApiResponse<any[]>> {
     try {
       const { data, error } = await supabase
-        .from('translation_feedback')
+        .from('translation_logs')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
@@ -173,56 +245,7 @@ export class TranslationService {
     } catch (error) {
       console.error('TranslationService.getTranslationHistory error:', error);
       return {
-        data: [],
-        error: error instanceof Error ? error.message : 'Unknown error',
-        success: false,
-      };
-    }
-  }
-
-  /**
-   * Smart translation - tries word lookup first, then fallback
-   */
-  static async smartTranslate(
-    text: string, 
-    direction: 'to_formal' | 'to_slang'
-  ): Promise<TranslationResponse> {
-    try {
-      const target = direction === 'to_formal' ? 'formal' : 'slang';
-      
-      // Use the main translateText method
-      return await this.translateText(text, target);
-      
-    } catch (error) {
-      console.error('TranslationService.smartTranslate error:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Batch translate multiple words
-   */
-  static async batchTranslate(
-    texts: string[],
-    target: 'formal' | 'slang'
-  ): Promise<ApiResponse<TranslationResponse[]>> {
-    try {
-      const translations: TranslationResponse[] = [];
-      
-      for (const text of texts) {
-        const translation = await this.translateText(text, target);
-        translations.push(translation);
-      }
-      
-      return {
-        data: translations,
-        success: true,
-      };
-    } catch (error) {
-      console.error('TranslationService.batchTranslate error:', error);
-      return {
-        data: [],
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Failed to get translation history',
         success: false,
       };
     }
@@ -232,59 +255,72 @@ export class TranslationService {
    * Get translation statistics
    */
   static async getTranslationStats(userId: string): Promise<ApiResponse<{
-    total: number;
-    correct: number;
-    incorrect: number;
-    partiallyCorrect: number;
-    accuracy: number;
+    totalTranslations: number;
+    aiTranslations: number;
+    databaseTranslations: number;
+    fallbackTranslations: number;
+    averageConfidence: number;
+    mostTranslatedWords: Array<{ word: string; count: number }>;
   }>> {
     try {
       const { data, error } = await supabase
-        .from('translation_feedback')
-        .select('feedback_type')
+        .from('translation_logs')
+        .select('*')
         .eq('user_id', userId);
 
       if (error) {
         throw error;
       }
 
-      const stats = {
-        total: data?.length || 0,
-        correct: data?.filter(f => f.feedback_type === 'correct').length || 0,
-        incorrect: data?.filter(f => f.feedback_type === 'incorrect').length || 0,
-        partiallyCorrect: data?.filter(f => f.feedback_type === 'partially_correct').length || 0,
-      };
+      const translations = data || [];
+      const totalTranslations = translations.length;
+      
+      const aiTranslations = translations.filter(t => t.source === 'ai').length;
+      const databaseTranslations = translations.filter(t => t.source === 'database').length;
+      const fallbackTranslations = translations.filter(t => t.source === 'fallback').length;
+      
+      const averageConfidence = totalTranslations > 0 
+        ? translations.reduce((sum, t) => sum + (t.confidence || 0), 0) / totalTranslations
+        : 0;
+
+      // Get most translated words
+      const wordCounts: Record<string, number> = {};
+      translations.forEach(t => {
+        const word = t.original_text.toLowerCase();
+        wordCounts[word] = (wordCounts[word] || 0) + 1;
+      });
+
+      const mostTranslatedWords = Object.entries(wordCounts)
+        .map(([word, count]) => ({ word, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
 
       return {
         data: {
-          ...stats,
-          accuracy: stats.total > 0 ? (stats.correct / stats.total) * 100 : 0
+          totalTranslations,
+          aiTranslations,
+          databaseTranslations,
+          fallbackTranslations,
+          averageConfidence,
+          mostTranslatedWords,
         },
         success: true,
       };
     } catch (error) {
       console.error('TranslationService.getTranslationStats error:', error);
       return {
-        data: {
-          total: 0,
-          correct: 0,
-          incorrect: 0,
-          partiallyCorrect: 0,
-          accuracy: 0
-        },
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Failed to get translation stats',
         success: false,
       };
     }
   }
 
   /**
-   * Simple fallback translation rules
+   * Get fallback translation using rule-based approach
    */
-  private static getFallbackTranslation(text: string, target: 'formal' | 'slang'): string | null {
+  private static getFallbackTranslation(text: string, target: 'formal' | 'slang'): TranslationResponse {
     const lowerText = text.toLowerCase();
     
-    // Common slang to formal translations
     const slangToFormal: Record<string, string> = {
       'bruh': 'jongen',
       'cap': 'lieg',
@@ -318,7 +354,6 @@ export class TranslationService {
       'sliding into dms': 'berichten sturen',
     };
 
-    // Formal to slang translations (reverse)
     const formalToSlang: Record<string, string> = {
       'jongen': 'bruh',
       'lieg': 'cap',
@@ -339,10 +374,22 @@ export class TranslationService {
       'berichten sturen': 'sliding into dms',
     };
 
+    let translation = text;
+    let confidence = 0.1;
+
     if (target === 'formal') {
-      return slangToFormal[lowerText] || null;
+      translation = slangToFormal[lowerText] || text;
+      confidence = slangToFormal[lowerText] ? 0.6 : 0.1;
     } else {
-      return formalToSlang[lowerText] || null;
+      translation = formalToSlang[lowerText] || text;
+      confidence = formalToSlang[lowerText] ? 0.6 : 0.1;
     }
+
+    return {
+      translation,
+      confidence,
+      source: 'fallback',
+      explanation: confidence > 0.1 ? 'Rule-based translation' : 'No translation found'
+    };
   }
 }

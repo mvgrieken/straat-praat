@@ -9,10 +9,10 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 
 import { COLORS } from '@/constants';
-// import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
 import { TranslationService, TranslationResponse } from '@/services/translationService';
 
@@ -22,17 +22,17 @@ interface AITranslatorProps {
 }
 
 export function AITranslator({ direction, onDirectionChange }: AITranslatorProps) {
-  // const { user } = useAuth();
   const { settings } = useSettings();
   const isDark = settings.theme === 'dark';
   const queryClient = useQueryClient();
   
   const [inputText, setInputText] = useState('');
   const [result, setResult] = useState<TranslationResponse | null>(null);
+  const [context, setContext] = useState('');
 
   // Translation mutation
   const translateMutation = useMutation({
-    mutationFn: (text: string) => TranslationService.smartTranslate(text.trim(), direction),
+    mutationFn: (text: string) => TranslationService.smartTranslate(text.trim(), direction, context || undefined),
     onSuccess: (data) => {
       setResult(data);
     },
@@ -56,6 +56,7 @@ export function AITranslator({ direction, onDirectionChange }: AITranslatorProps
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['translation-history'] });
+      Alert.alert('Bedankt!', 'Je feedback is opgeslagen.');
     },
   });
 
@@ -71,223 +72,236 @@ export function AITranslator({ direction, onDirectionChange }: AITranslatorProps
   const clearInput = () => {
     setInputText('');
     setResult(null);
+    setContext('');
+  };
+
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 0.8) return COLORS.success;
+    if (confidence >= 0.6) return COLORS.warning;
+    return COLORS.error;
+  };
+
+  const getSourceIcon = (source: string) => {
+    switch (source) {
+      case 'ai':
+        return 'sparkles';
+      case 'database':
+        return 'library';
+      case 'fallback':
+        return 'help-circle';
+      default:
+        return 'information-circle';
+    }
+  };
+
+  const getSourceText = (source: string) => {
+    switch (source) {
+      case 'ai':
+        return 'AI Vertaling';
+      case 'database':
+        return 'Database';
+      case 'fallback':
+        return 'Regel-gebaseerd';
+      default:
+        return 'Onbekend';
+    }
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1"
+      style={{ flex: 1 }}
     >
-      {/* Direction Toggle */}
-      <View className="mb-6">
-        <TouchableOpacity
-          onPress={onDirectionChange}
-          className="rounded-2xl p-4 shadow-sm flex-row items-center justify-between"
-          style={{ 
-            backgroundColor: isDark ? COLORS.gray[800] : COLORS.white,
-            borderWidth: 1,
-            borderColor: isDark ? COLORS.gray[700] : COLORS.gray[200],
-          }}
-        >
-          <Text 
-            className="font-medium flex-1"
-            style={{ 
-              color: isDark ? COLORS.white : COLORS.gray[900],
-              fontSize: settings.fontSize === 'large' ? 16 : 14,
-            }}
-          >
-            {direction === 'to_formal' ? 'Slang -> Nederlands' : 'Nederlands -> Slang'}
+      <View className="flex-1 p-4">
+        {/* Direction Toggle */}
+        <View className="flex-row items-center justify-between mb-4">
+          <Text className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+            {direction === 'to_formal' ? 'Jongerenslang → Formeel' : 'Formeel → Jongerenslang'}
           </Text>
-          
-          <View 
-            className="rounded-full p-2"
-            style={{ backgroundColor: COLORS.primary[100] }}
+          <TouchableOpacity
+            onPress={onDirectionChange}
+            className="flex-row items-center bg-blue-500 px-3 py-2 rounded-lg"
           >
-            <Ionicons 
-              name="swap-horizontal" 
-              size={20} 
-              color={COLORS.primary[600]} 
-            />
-          </View>
-        </TouchableOpacity>
-      </View>
+            <Ionicons name="swap-horizontal" size={16} color="white" />
+            <Text className="text-white ml-1 font-medium">Wissel</Text>
+          </TouchableOpacity>
+        </View>
 
-      {/* Input Section */}
-      <View 
-        className="rounded-2xl shadow-sm mb-6"
-        style={{ 
-          backgroundColor: isDark ? COLORS.gray[800] : COLORS.white,
-          borderWidth: 1,
-          borderColor: isDark ? COLORS.gray[700] : COLORS.gray[200],
-        }}
-      >
-        <View className="p-4">
-          <Text 
-            className="text-sm font-medium mb-3"
-            style={{ color: isDark ? COLORS.gray[300] : COLORS.gray[600] }}
-          >
-            {direction === 'to_formal' ? 'Slang tekst' : 'Nederlandse tekst'}
+        {/* Input Section */}
+        <View className="mb-4">
+          <Text className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+            Tekst om te vertalen
           </Text>
-          
           <TextInput
             value={inputText}
             onChangeText={setInputText}
-            placeholder={
-              direction === 'to_formal' 
-                ? 'Typ hier je slang tekst...'
-                : 'Typ hier je Nederlandse tekst...'
-            }
-            placeholderTextColor={isDark ? COLORS.gray[500] : COLORS.gray[400]}
+            placeholder={direction === 'to_formal' ? 'Voer jongerenslang in...' : 'Voer formele tekst in...'}
+            placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
+            className={`border rounded-lg p-3 text-base ${
+              isDark 
+                ? 'border-gray-600 bg-gray-800 text-white' 
+                : 'border-gray-300 bg-white text-gray-900'
+            }`}
             multiline
             numberOfLines={3}
-            className="min-h-20"
-            style={{ 
-              color: isDark ? COLORS.white : COLORS.gray[900],
-              fontSize: settings.fontSize === 'large' ? 18 : 16,
-              textAlignVertical: 'top',
-            }}
-            onSubmitEditing={handleTranslate}
+            textAlignVertical="top"
           />
         </View>
-        
-        <View className="flex-row items-center justify-between p-4 pt-0">
-          {inputText.length > 0 && (
-            <TouchableOpacity onPress={clearInput}>
-              <Ionicons 
-                name="close-circle" 
-                size={20} 
-                color={isDark ? COLORS.gray[500] : COLORS.gray[400]} 
-              />
-            </TouchableOpacity>
-          )}
-          
-          <TouchableOpacity
-            onPress={handleTranslate}
-            disabled={!inputText.trim() || translateMutation.isPending}
-            className="rounded-xl px-4 py-2 flex-row items-center"
-            style={{ 
-              backgroundColor: inputText.trim() && !translateMutation.isPending
-                ? COLORS.primary[500] 
-                : COLORS.gray[300],
-            }}
-          >
-            {translateMutation.isPending ? (
-              <Text className="text-white font-medium">Vertalen...</Text>
-            ) : (
-              <>
-                <Ionicons name="language" size={16} color="white" />
-                <Text className="text-white font-medium ml-2">Vertaal</Text>
-              </>
-            )}
-          </TouchableOpacity>
+
+        {/* Context Input (Optional) */}
+        <View className="mb-4">
+          <Text className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+            Context (optioneel)
+          </Text>
+          <TextInput
+            value={context}
+            onChangeText={setContext}
+            placeholder="Voeg context toe voor betere vertaling..."
+            placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
+            className={`border rounded-lg p-3 text-base ${
+              isDark 
+                ? 'border-gray-600 bg-gray-800 text-white' 
+                : 'border-gray-300 bg-white text-gray-900'
+            }`}
+            multiline
+            numberOfLines={2}
+            textAlignVertical="top"
+          />
         </View>
-      </View>
 
-      {/* Result Section */}
-      {result && (
-        <View 
-          className="rounded-2xl shadow-lg p-6"
-          style={{ 
-            backgroundColor: isDark ? COLORS.gray[800] : COLORS.white,
-            borderWidth: 1,
-            borderColor: isDark ? COLORS.gray[700] : COLORS.gray[200],
-          }}
+        {/* Translate Button */}
+        <TouchableOpacity
+          onPress={handleTranslate}
+          disabled={!inputText.trim() || translateMutation.isPending}
+          className={`flex-row items-center justify-center py-3 rounded-lg mb-4 ${
+            !inputText.trim() || translateMutation.isPending
+              ? 'bg-gray-400'
+              : 'bg-blue-500'
+          }`}
         >
-          <Text 
-            className="text-sm font-medium mb-3"
-            style={{ color: isDark ? COLORS.gray[300] : COLORS.gray[600] }}
-          >
-            {direction === 'to_formal' ? 'Nederlandse vertaling' : 'Slang vertaling'}
+          {translateMutation.isPending ? (
+            <ActivityIndicator color="white" size="small" />
+          ) : (
+            <Ionicons name="language" size={20} color="white" />
+          )}
+          <Text className="text-white font-semibold ml-2">
+            {translateMutation.isPending ? 'Vertalen...' : 'Vertalen'}
           </Text>
-          
-          <Text 
-            className="text-xl font-semibold mb-4"
-            style={{ 
-              color: isDark ? COLORS.white : COLORS.gray[900],
-              fontSize: settings.fontSize === 'large' ? 24 : 20,
-            }}
-          >
-            {result.translation}
-          </Text>
+        </TouchableOpacity>
 
-          {result.explanation && (
-            <View 
-              className="rounded-lg p-3 mb-4"
-              style={{ backgroundColor: isDark ? COLORS.gray[700] : COLORS.gray[100] }}
-            >
-              <Text 
-                className="text-sm"
-                style={{ color: isDark ? COLORS.gray[300] : COLORS.gray[600] }}
-              >
-                {result.explanation}
+        {/* Result Section */}
+        {result && (
+          <View className={`border rounded-lg p-4 mb-4 ${
+            isDark ? 'border-gray-600 bg-gray-800' : 'border-gray-300 bg-white'
+          }`}>
+            {/* Translation Result */}
+            <View className="mb-3">
+              <Text className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                Vertaling
+              </Text>
+              <Text className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {result.translation}
               </Text>
             </View>
-          )}
 
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center">
-              <View 
-                className="rounded-full px-3 py-1 mr-3"
-                style={{ 
-                  backgroundColor: result.confidence >= 0.8 
-                    ? COLORS.success[100] 
-                    : result.confidence >= 0.6 
-                      ? COLORS.warning[100]
-                      : COLORS.error[100]
-                }}
-              >
-                <Text 
-                  className="text-xs font-medium"
-                  style={{ 
-                    color: result.confidence >= 0.8 
-                      ? COLORS.success[700] 
-                      : result.confidence >= 0.6 
-                        ? COLORS.warning[700]
-                        : COLORS.error[700]
-                  }}
-                >
+            {/* Confidence and Source */}
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="flex-row items-center">
+                <Ionicons 
+                  name={getSourceIcon(result.source)} 
+                  size={16} 
+                  color={isDark ? '#9CA3AF' : '#6B7280'} 
+                />
+                <Text className={`text-sm ml-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {getSourceText(result.source)}
+                </Text>
+                {result.model && (
+                  <Text className={`text-xs ml-2 px-2 py-1 rounded bg-blue-100 text-blue-800`}>
+                    {result.model}
+                  </Text>
+                )}
+              </View>
+              <View className="flex-row items-center">
+                <View 
+                  className="w-3 h-3 rounded-full mr-2"
+                  style={{ backgroundColor: getConfidenceColor(result.confidence) }}
+                />
+                <Text className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                   {Math.round(result.confidence * 100)}% zeker
                 </Text>
               </View>
-
-              {result.confidence < 0.7 && (
-                <Text 
-                  className="text-xs"
-                  style={{ color: isDark ? COLORS.gray[400] : COLORS.gray[500] }}
-                >
-                  Controleer het resultaat
-                </Text>
-              )}
             </View>
 
-            <View className="flex-row items-center">
-              <TouchableOpacity 
+            {/* Explanation */}
+            {result.explanation && (
+              <View className="mb-3">
+                <Text className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {result.explanation}
+                </Text>
+              </View>
+            )}
+
+            {/* Alternatives */}
+            {result.alternatives && result.alternatives.length > 0 && (
+              <View className="mb-3">
+                <Text className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Alternatieven
+                </Text>
+                <View className="flex-row flex-wrap">
+                  {result.alternatives.map((alt, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => setResult({ ...result, translation: alt })}
+                      className={`mr-2 mb-1 px-2 py-1 rounded border ${
+                        isDark 
+                          ? 'border-gray-600 bg-gray-700' 
+                          : 'border-gray-300 bg-gray-100'
+                      }`}
+                    >
+                      <Text className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        {alt}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Feedback Buttons */}
+            <View className="flex-row space-x-2">
+              <TouchableOpacity
                 onPress={() => handleFeedback('correct')}
                 disabled={feedbackMutation.isPending}
-                className="mr-3 p-2"
+                className="flex-1 flex-row items-center justify-center py-2 bg-green-500 rounded-lg"
               >
-                <Ionicons 
-                  name="thumbs-up" 
-                  size={20} 
-                  color={COLORS.success[500]} 
-                />
+                <Ionicons name="checkmark" size={16} color="white" />
+                <Text className="text-white font-medium ml-1">Correct</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => handleFeedback('incorrect')}
                 disabled={feedbackMutation.isPending}
-                className="p-2"
+                className="flex-1 flex-row items-center justify-center py-2 bg-red-500 rounded-lg"
               >
-                <Ionicons 
-                  name="thumbs-down" 
-                  size={20} 
-                  color={COLORS.error[500]} 
-                />
+                <Ionicons name="close" size={16} color="white" />
+                <Text className="text-white font-medium ml-1">Incorrect</Text>
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      )}
+        )}
+
+        {/* Clear Button */}
+        {(inputText || result) && (
+          <TouchableOpacity
+            onPress={clearInput}
+            className="flex-row items-center justify-center py-2 border border-gray-300 rounded-lg"
+          >
+            <Ionicons name="trash" size={16} color={isDark ? '#9CA3AF' : '#6B7280'} />
+            <Text className={`ml-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              Wissen
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </KeyboardAvoidingView>
   );
 }
