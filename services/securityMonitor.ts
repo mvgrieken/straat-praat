@@ -154,9 +154,9 @@ export class SecurityMonitor {
       
       // Test basic database connectivity
       const { data, error } = await supabase
-        .from('profiles')
-        .select('count')
-        .limit(1);
+          .from('profiles')
+          .select('count')
+          .limit(1);
 
       const responseTime = Date.now() - startTime;
 
@@ -214,7 +214,7 @@ export class SecurityMonitor {
       }
 
       return 'healthy';
-    } catch (error) {
+      } catch (error) {
       console.error('API health check error:', error);
       return 'unhealthy';
     }

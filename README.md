@@ -39,18 +39,30 @@ git clone https://github.com/mvgrieken/straat-praat.git
 cd straat-praat
 ```
 
-2. Installeer dependencies:
+2. **Belangrijk**: Gebruik de juiste Node.js versie:
 ```bash
-npm install
+# Als je nvm gebruikt:
+nvm use
+
+# Of installeer Node.js 18.20.0+ handmatig
 ```
 
-3. Configureer environment variables:
+3. Installeer dependencies (met optimalisaties):
+```bash
+# Voor development:
+npm install --legacy-peer-deps
+
+# Voor CI/CD:
+CI=1 ADBLOCK=1 HUSKY=0 npm install --no-audit --no-fund --legacy-peer-deps
+```
+
+4. Configureer environment variables:
 ```bash
 cp .env.example .env.local
 # Vul je Supabase credentials in
 ```
 
-4. Start de development server:
+5. Start de development server:
 ```bash
 npm start
 ```

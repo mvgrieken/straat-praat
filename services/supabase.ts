@@ -2,7 +2,7 @@ import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 
-import type { Database } from '../src/lib/types/supabase';
+import type { Database } from '../types/supabase';
 import { validateEnvironment } from '../src/env';
 
 // Validate and get environment variables
