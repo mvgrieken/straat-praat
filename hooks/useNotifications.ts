@@ -28,6 +28,8 @@ export function useNotifications() {
       if (token) {
         setExpoPushToken(token);
       }
+    }).catch(error => {
+      console.warn('Error registering for push notifications:', error);
     });
 
     // This listener is fired whenever a notification is received while the app is foregrounded
@@ -56,247 +58,205 @@ export function useNotifications() {
       return false;
     }
 
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
+    try {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
 
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
 
-    if (finalStatus !== 'granted') {
-      console.warn('Failed to get push token for push notification!');
+      if (finalStatus !== 'granted') {
+        console.warn('Failed to get push token for push notification!');
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.warn('Error requesting notification permissions:', error);
       return false;
     }
-
-    return true;
   };
 
   const registerForPushNotificationsAsync = async (): Promise<string | null> => {
     let token = null;
 
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
-      });
-    }
-
-    if (Device.isDevice) {
-      const hasPermissions = await requestPermissions();
-      if (!hasPermissions) {
-        return null;
-      }
-
-      try {
-        const pushToken = await Notifications.getExpoPushTokenAsync({
-          projectId: Constants.expoConfig?.extra?.eas?.projectId,
+    try {
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'default',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#FF231F7C',
         });
-        token = pushToken.data;
-
-        // Store token for later use
-        if (Platform.OS !== 'web') {
-          await AsyncStorage.setItem('expo_push_token', token);
-        } else {
-          localStorage.setItem('expo_push_token', token);
-        }
-      } catch (error) {
-        console.error('Error getting push token:', error);
       }
-    } else {
-      console.warn('Must use physical device for Push Notifications');
+
+      if (Device.isDevice) {
+        const hasPermissions = await requestPermissions();
+        if (!hasPermissions) {
+          return null;
+        }
+
+        try {
+          const pushToken = await Notifications.getExpoPushTokenAsync({
+            projectId: Constants.expoConfig?.extra?.eas?.projectId,
+          });
+          token = pushToken.data;
+
+          // Store token for later use
+          if (Platform.OS !== 'web') {
+            await AsyncStorage.setItem('expoPushToken', token);
+          }
+        } catch (error) {
+          console.warn('Error getting push token:', error);
+          // Don't throw here, just return null
+          return null;
+        }
+      } else {
+        console.warn('Must use physical device for Push Notifications');
+      }
+    } catch (error) {
+      console.warn('Error in registerForPushNotificationsAsync:', error);
     }
 
     return token;
   };
 
   const handleNotificationResponse = (response: Notifications.NotificationResponse) => {
-    const data = response.notification.request.content.data;
-    const type = data?.type;
-
-    switch (type) {
-      case NOTIFICATION_TYPES.WORD_OF_DAY:
-        // Navigate to home screen
-        break;
-      case NOTIFICATION_TYPES.STREAK_REMINDER:
-        // Navigate to home screen
-        break;
-      case NOTIFICATION_TYPES.QUIZ_REMINDER:
-        // Navigate to quiz screen
-        break;
-      case NOTIFICATION_TYPES.ACHIEVEMENT_UNLOCKED:
-        // Navigate to profile achievements
-        break;
-      default:
-        // Default action
-        break;
-    }
-  };
-
-  const scheduleWordOfDayNotification = async () => {
-    if (!notificationSettings.dailyWordEnabled) return;
-
-    // Cancel existing word of day notifications
-    await Notifications.cancelScheduledNotificationAsync('word-of-day');
-
-    const [hours, minutes] = notificationSettings.dailyWordTime.split(':').map(Number);
+    const data = response.notification.request.content.data as NotificationData;
     
-    if (hours === undefined || minutes === undefined) return;
-
-    await Notifications.scheduleNotificationAsync({
-      identifier: 'word-of-day',
-      content: {
-title: 'Woord van de dag',
-        body: 'Leer vandaag een nieuw slangwoord!',
-        data: { type: NOTIFICATION_TYPES.WORD_OF_DAY },
-      },
-      trigger: {
-        hour: hours,
-        minute: minutes,
-        repeats: true,
-      },
-    });
+    if (data?.type === NOTIFICATION_TYPES.WORD_OF_DAY) {
+      // Navigate to word of the day
+      console.log('Navigate to word of the day');
+    } else if (data?.type === NOTIFICATION_TYPES.QUIZ_REMINDER) {
+      // Navigate to quiz
+      console.log('Navigate to quiz');
+    } else if (data?.type === NOTIFICATION_TYPES.STREAK_REMINDER) {
+      // Navigate to profile
+      console.log('Navigate to profile');
+    }
   };
 
-  const scheduleStreakReminder = async () => {
-    if (!notificationSettings.streakReminderEnabled) return;
-
-    // Cancel existing streak reminders
-    await Notifications.cancelScheduledNotificationAsync('streak-reminder');
-
-    // Schedule for 8 PM daily
-    await Notifications.scheduleNotificationAsync({
-      identifier: 'streak-reminder',
-      content: {
-title: 'Behoud je reeks!',
-        body: 'Je hebt vandaag nog niets geleerd. Houd je reeks vol!',
-        data: { type: NOTIFICATION_TYPES.STREAK_REMINDER },
-      },
-      trigger: {
-        hour: 20,
-        minute: 0,
-        repeats: true,
-      },
-    });
+  const scheduleLocalNotification = async (
+    title: string,
+    body: string,
+    trigger: Notifications.NotificationTriggerInput,
+    data?: Record<string, any>
+  ) => {
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title,
+          body,
+          data,
+        },
+        trigger,
+      });
+    } catch (error) {
+      console.error('Error scheduling local notification:', error);
+    }
   };
 
-  const scheduleQuizReminder = async () => {
-    if (!notificationSettings.quizReminderEnabled) return;
+  const scheduleWordOfDayNotification = async (hour: number = 10) => {
+    const now = new Date();
+    const scheduledTime = new Date(now);
+    scheduledTime.setHours(hour, 0, 0, 0);
 
-    // Cancel existing quiz reminders
-    await Notifications.cancelScheduledNotificationAsync('quiz-reminder');
-
-    // Schedule weekly quiz reminder (Sunday at 2 PM)
-    await Notifications.scheduleNotificationAsync({
-      identifier: 'quiz-reminder',
-      content: {
-title: 'Quiz tijd!',
-        body: 'Zin in een uitdaging? Doe een slangquiz!',
-        data: { type: NOTIFICATION_TYPES.QUIZ_REMINDER },
-      },
-      trigger: {
-        weekday: 1, // Sunday
-        hour: 14,
-        minute: 0,
-        repeats: true,
-      },
-    });
-  };
-
-  const sendImmediateNotification = async (notificationData: NotificationData) => {
-    if (Platform.OS === 'web') {
-      // Web notifications require different handling
-      if ('Notification' in window) {
-        if (Notification.permission === 'granted') {
-          new Notification(notificationData.title, {
-            body: notificationData.body,
-            icon: '/icon.png',
-          });
-        }
-      }
-      return;
+    // If the time has already passed today, schedule for tomorrow
+    if (scheduledTime <= now) {
+      scheduledTime.setDate(scheduledTime.getDate() + 1);
     }
 
-    await Notifications.presentNotificationAsync({
-      title: notificationData.title,
-      body: notificationData.body,
-      data: notificationData.data || {},
-    });
+    await scheduleLocalNotification(
+      'Woord van de Dag',
+      'Leer vandaag een nieuw slangwoord!',
+      {
+        date: scheduledTime,
+        repeats: true,
+      },
+      {
+        type: NOTIFICATION_TYPES.WORD_OF_DAY,
+      }
+    );
   };
 
-  const sendAchievementNotification = async (achievementName: string) => {
-    if (!notificationSettings.achievementNotificationsEnabled) return;
+  const scheduleStreakReminder = async (hour: number = 20) => {
+    const now = new Date();
+    const scheduledTime = new Date(now);
+    scheduledTime.setHours(hour, 0, 0, 0);
 
-    await sendImmediateNotification({
-      type: NOTIFICATION_TYPES.ACHIEVEMENT_UNLOCKED,
-title: 'Prestatie ontgrendeld!',
-      body: `Je hebt "${achievementName}" behaald!`,
-      data: { type: NOTIFICATION_TYPES.ACHIEVEMENT_UNLOCKED, achievementName } as Record<string, any>,
-    });
+    // If the time has already passed today, schedule for tomorrow
+    if (scheduledTime <= now) {
+      scheduledTime.setDate(scheduledTime.getDate() + 1);
+    }
+
+    await scheduleLocalNotification(
+      'Streak Alert',
+      'Vergeet niet vandaag te leren om je streak te behouden!',
+      {
+        date: scheduledTime,
+        repeats: true,
+      },
+      {
+        type: NOTIFICATION_TYPES.STREAK_REMINDER,
+      }
+    );
+  };
+
+  const scheduleQuizReminder = async (dayOfWeek: number = 1, hour: number = 18) => {
+    // Schedule for next occurrence of the specified day of week (0 = Sunday, 1 = Monday, etc.)
+    const now = new Date();
+    const scheduledTime = new Date(now);
+    scheduledTime.setHours(hour, 0, 0, 0);
+
+    // Calculate days until next occurrence
+    const daysUntilNext = (dayOfWeek - scheduledTime.getDay() + 7) % 7;
+    if (daysUntilNext === 0 && scheduledTime <= now) {
+      scheduledTime.setDate(scheduledTime.getDate() + 7);
+    } else {
+      scheduledTime.setDate(scheduledTime.getDate() + daysUntilNext);
+    }
+
+    await scheduleLocalNotification(
+      'Quiz Tijd!',
+      'Test je kennis met een nieuwe quiz!',
+      {
+        date: scheduledTime,
+        repeats: true,
+      },
+      {
+        type: NOTIFICATION_TYPES.QUIZ_REMINDER,
+      }
+    );
   };
 
   const cancelAllNotifications = async () => {
-    await Notifications.cancelAllScheduledNotificationsAsync();
-  };
-
-  const updateNotificationSchedules = async () => {
-    // Re-schedule all notifications based on current settings
-    await Promise.all([
-      scheduleWordOfDayNotification(),
-      scheduleStreakReminder(),
-      scheduleQuizReminder(),
-    ]);
-  };
-
-  // Check if current time is within do-not-disturb hours
-  const isInDoNotDisturbTime = (): boolean => {
-    const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
-    
-    const startTimeParts = notificationSettings.doNotDisturbStart.split(':').map(Number);
-    const endTimeParts = notificationSettings.doNotDisturbEnd.split(':').map(Number);
-    
-    const startHour = startTimeParts[0];
-    const startMinute = startTimeParts[1];
-    const endHour = endTimeParts[0];
-    const endMinute = endTimeParts[1];
-    
-    if (startHour === undefined || startMinute === undefined || endHour === undefined || endMinute === undefined) {
-      return false;
-    }
-    
-    const startTime = startHour * 60 + startMinute;
-    const endTime = endHour * 60 + endMinute;
-    
-    if (startTime <= endTime) {
-      // Same day range
-      return currentTime >= startTime && currentTime <= endTime;
-    } else {
-      // Overnight range
-      return currentTime >= startTime || currentTime <= endTime;
+    try {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+    } catch (error) {
+      console.error('Error canceling notifications:', error);
     }
   };
 
-  // Get notification permission status
-  const getNotificationStatus = async () => {
-    const { status } = await Notifications.getPermissionsAsync();
-    return status;
+  const getScheduledNotifications = async () => {
+    try {
+      return await Notifications.getAllScheduledNotificationsAsync();
+    } catch (error) {
+      console.error('Error getting scheduled notifications:', error);
+      return [];
+    }
   };
 
   return {
     expoPushToken,
     notification,
     requestPermissions,
+    scheduleLocalNotification,
     scheduleWordOfDayNotification,
     scheduleStreakReminder,
     scheduleQuizReminder,
-    sendImmediateNotification,
-    sendAchievementNotification,
     cancelAllNotifications,
-    updateNotificationSchedules,
-    isInDoNotDisturbTime,
-    getNotificationStatus,
+    getScheduledNotifications,
   };
 }

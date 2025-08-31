@@ -81,11 +81,11 @@ export default function RootLayout() {
                     options={{ headerShown: false }} 
                   />
                   <Stack.Screen 
-                    name="onboarding" 
+                    name="onboarding/index" 
                     options={{ headerShown: false }} 
                   />
                   <Stack.Screen
-                    name="quiz/[id]"
+                    name="quiz/[level]"
                     options={{
                       title: 'Quiz',
                       presentation: 'modal',

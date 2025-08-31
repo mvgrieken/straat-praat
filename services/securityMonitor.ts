@@ -1,416 +1,318 @@
 import { supabase } from './supabase';
-import { AuthAnalyticsService } from './authAnalyticsService';
-import { SessionManager } from './sessionManager';
+import { SecurityEventLogger } from './securityEventLogger';
+import { AlertingService } from './alertingService';
 
-export interface SecurityHealthStatus {
-  overall: 'healthy' | 'degraded' | 'critical';
-  checks: SecurityCheck[];
-  lastUpdated: Date;
+export interface SecurityMetrics {
+  totalLogins: number;
+  failedLogins: number;
+  successRate: number;
+  suspiciousActivities: number;
+  mfaUsage: number;
+  lastUpdated: string;
 }
 
-export interface SecurityCheck {
-  name: string;
-  status: 'healthy' | 'degraded' | 'critical';
-  message: string;
-  details?: any;
-}
-
-export interface SecurityAlert {
-  id: string;
-  type: 'warning' | 'error' | 'critical';
-  message: string;
-  timestamp: Date;
-  resolved: boolean;
-  metadata?: any;
+export interface SystemHealth {
+  database: 'healthy' | 'degraded' | 'unhealthy';
+  authentication: 'healthy' | 'degraded' | 'unhealthy';
+  api: 'healthy' | 'degraded' | 'unhealthy';
+  overall: 'healthy' | 'degraded' | 'unhealthy';
+  lastChecked: string;
 }
 
 export class SecurityMonitor {
-  private static alerts: SecurityAlert[] = [];
-  private static monitoringInterval: NodeJS.Timeout | null = null;
+  private static instance: SecurityMonitor;
+  private monitoringInterval: NodeJS.Timeout | null = null;
+  private isMonitoring = false;
+  private checkInterval = 10 * 60 * 1000; // 10 minutes instead of 5
 
-  static async checkSystemHealth(): Promise<SecurityHealthStatus> {
-    const checks: SecurityCheck[] = [];
+  private constructor() {}
+
+  static getInstance(): SecurityMonitor {
+    if (!SecurityMonitor.instance) {
+      SecurityMonitor.instance = new SecurityMonitor();
+    }
+    return SecurityMonitor.instance;
+  }
+
+  /**
+   * Start security monitoring
+   */
+  async startMonitoring(): Promise<void> {
+    if (this.isMonitoring) {
+      console.log('Security monitoring is already running');
+      return;
+    }
 
     try {
-      // Check database connection
-      const dbCheck = await this.checkDatabaseConnection();
-      checks.push(dbCheck);
+      console.log('Security monitoring started with 10-minute intervals');
+      this.isMonitoring = true;
 
-      // Check authentication system
-      const authCheck = await this.checkAuthenticationSystem();
-      checks.push(authCheck);
+      // Initial health check
+      await this.performHealthCheck();
 
-      // Check session management
-      const sessionCheck = await this.checkSessionManagement();
-      checks.push(sessionCheck);
-
-      // Check security policies
-      const policyCheck = await this.checkSecurityPolicies();
-      checks.push(policyCheck);
-
-      // Check for suspicious activity
-      const suspiciousCheck = await this.checkSuspiciousActivity();
-      checks.push(suspiciousCheck);
-
-      // Determine overall status
-      const criticalChecks = checks.filter(c => c.status === 'critical').length;
-      const degradedChecks = checks.filter(c => c.status === 'degraded').length;
-
-      let overall: 'healthy' | 'degraded' | 'critical' = 'healthy';
-      if (criticalChecks > 0) {
-        overall = 'critical';
-      } else if (degradedChecks > 0) {
-        overall = 'degraded';
-      }
-
-      return {
-        overall,
-        checks,
-        lastUpdated: new Date()
-      };
+      // Set up periodic monitoring
+      this.monitoringInterval = setInterval(async () => {
+        try {
+          await this.performHealthCheck();
+        } catch (error) {
+          console.error('Error during periodic health check:', error);
+          await SecurityEventLogger.logEvent('security_monitor_error', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date().toISOString(),
+          });
+        }
+      }, this.checkInterval);
 
     } catch (error) {
-      console.error('Error checking system health:', error);
-      return {
-        overall: 'critical',
-        checks: [{
-          name: 'System Health Check',
-          status: 'critical',
-          message: 'Failed to perform system health check'
-        }],
-        lastUpdated: new Date()
-      };
+      console.error('Failed to start security monitoring:', error);
+      this.isMonitoring = false;
+      throw error;
     }
   }
 
-  private static async checkDatabaseConnection(): Promise<SecurityCheck> {
+  /**
+   * Stop security monitoring
+   */
+  stopMonitoring(): void {
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval);
+      this.monitoringInterval = null;
+    }
+    this.isMonitoring = false;
+    console.log('Security monitoring stopped');
+  }
+
+  /**
+   * Perform comprehensive health check
+   */
+  private async performHealthCheck(): Promise<void> {
     try {
+      const startTime = Date.now();
+      
+      // Check database connectivity
+      const dbHealth = await this.checkDatabaseHealth();
+      
+      // Check authentication service
+      const authHealth = await this.checkAuthenticationHealth();
+      
+      // Check API endpoints
+      const apiHealth = await this.checkAPIHealth();
+      
+      // Determine overall health
+      const overallHealth = this.determineOverallHealth(dbHealth, authHealth, apiHealth);
+      
+      const healthStatus: SystemHealth = {
+        database: dbHealth,
+        authentication: authHealth,
+        api: apiHealth,
+        overall: overallHealth,
+        lastChecked: new Date().toISOString(),
+      };
+
+      // Log health status
+      await SecurityEventLogger.logEvent('system_health_check', {
+        health: healthStatus,
+        duration: Date.now() - startTime,
+      });
+
+      // Alert if system is unhealthy
+      if (overallHealth === 'unhealthy') {
+        await AlertingService.createAlert({
+          type: 'system_health',
+          severity: 'high',
+          title: 'System Health Critical',
+          description: 'Multiple system components are unhealthy',
+          data: healthStatus,
+        });
+      } else if (overallHealth === 'degraded') {
+        await AlertingService.createAlert({
+          type: 'system_health',
+          severity: 'medium',
+          title: 'System Health Degraded',
+          description: 'Some system components are experiencing issues',
+          data: healthStatus,
+        });
+      }
+
+      console.log('Health check completed:', healthStatus);
+
+    } catch (error) {
+      console.error('Health check failed:', error);
+      await SecurityEventLogger.logEvent('health_check_failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Check database health
+   */
+  private async checkDatabaseHealth(): Promise<'healthy' | 'degraded' | 'unhealthy'> {
+    try {
+      const startTime = Date.now();
+      
+      // Test basic database connectivity
       const { data, error } = await supabase
         .from('profiles')
         .select('count')
         .limit(1);
 
+      const responseTime = Date.now() - startTime;
+
       if (error) {
-        return {
-          name: 'Database Connection',
-          status: 'critical',
-          message: `Database connection failed: ${error.message}`
-        };
+        console.error('Database health check failed:', error);
+        return 'unhealthy';
       }
 
-      return {
-        name: 'Database Connection',
-        status: 'healthy',
-        message: 'Database connection is working properly'
-      };
+      // Consider degraded if response time is too slow
+      if (responseTime > 5000) {
+        return 'degraded';
+      }
 
+      return 'healthy';
     } catch (error) {
-      return {
-        name: 'Database Connection',
-        status: 'critical',
-        message: `Database connection error: ${error}`
-      };
+      console.error('Database health check error:', error);
+      return 'unhealthy';
     }
   }
 
-  private static async checkAuthenticationSystem(): Promise<SecurityCheck> {
+  /**
+   * Check authentication service health
+   */
+  private async checkAuthenticationHealth(): Promise<'healthy' | 'degraded' | 'unhealthy'> {
     try {
-      // Check if auth tables exist and are accessible
-      const { data: authData, error: authError } = await supabase
-        .from('user_security')
+      // Test authentication service by checking if we can access auth tables
+      const { data, error } = await supabase.auth.getSession();
+
+      if (error) {
+        console.error('Authentication health check failed:', error);
+        return 'unhealthy';
+      }
+
+      return 'healthy';
+    } catch (error) {
+      console.error('Authentication health check error:', error);
+      return 'unhealthy';
+    }
+  }
+
+  /**
+   * Check API health
+   */
+  private async checkAPIHealth(): Promise<'healthy' | 'degraded' | 'unhealthy'> {
+    try {
+      // Test API endpoints by making a simple request
+      const { data, error } = await supabase
+        .from('words')
         .select('count')
         .limit(1);
 
-      if (authError) {
-        return {
-          name: 'Authentication System',
-          status: 'critical',
-          message: `Authentication system error: ${authError.message}`
-        };
-      }
-
-      // Check recent authentication metrics
-      const metrics = await AuthAnalyticsService.getSystemAuthMetrics(1);
-      
-      if (metrics.loginSuccessRate < 95) {
-        return {
-          name: 'Authentication System',
-          status: 'degraded',
-          message: `Low login success rate: ${metrics.loginSuccessRate.toFixed(1)}%`,
-          details: metrics
-        };
-      }
-
-      return {
-        name: 'Authentication System',
-        status: 'healthy',
-        message: 'Authentication system is working properly'
-      };
-
-    } catch (error) {
-      return {
-        name: 'Authentication System',
-        status: 'critical',
-        message: `Authentication system error: ${error}`
-      };
-    }
-  }
-
-  private static async checkSessionManagement(): Promise<SecurityCheck> {
-    try {
-      const isHealthy = await SessionManager.monitorSessionHealth();
-      
-      if (!isHealthy) {
-        return {
-          name: 'Session Management',
-          status: 'degraded',
-          message: 'Session management issues detected'
-        };
-      }
-
-      return {
-        name: 'Session Management',
-        status: 'healthy',
-        message: 'Session management is working properly'
-      };
-
-    } catch (error) {
-      return {
-        name: 'Session Management',
-        status: 'critical',
-        message: `Session management error: ${error}`
-      };
-    }
-  }
-
-  private static async checkSecurityPolicies(): Promise<SecurityCheck> {
-    try {
-      // Check if RLS is enabled on critical tables
-      const { data: rlsData, error: rlsError } = await supabase
-        .rpc('check_rls_policies');
-
-      if (rlsError) {
-        // Fallback check
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('count')
-          .limit(1);
-
-        if (profilesError && profilesError.message.includes('permission denied')) {
-          return {
-            name: 'Security Policies',
-            status: 'healthy',
-            message: 'RLS policies are working (access denied as expected)'
-          };
-        }
-      }
-
-      return {
-        name: 'Security Policies',
-        status: 'healthy',
-        message: 'Security policies are properly configured'
-      };
-
-    } catch (error) {
-      return {
-        name: 'Security Policies',
-        status: 'degraded',
-        message: `Security policy check error: ${error}`
-      };
-    }
-  }
-
-  private static async checkSuspiciousActivity(): Promise<SecurityCheck> {
-    try {
-      // Check for recent failed login attempts
-      const { data: failedLogins, error } = await supabase
-        .from('auth_audit_log')
-        .select('*')
-        .eq('event_type', 'login_failure')
-        .gte('created_at', new Date(Date.now() - 60 * 60 * 1000).toISOString()) // Last hour
-        .order('created_at', { ascending: false });
-
       if (error) {
-        return {
-          name: 'Suspicious Activity',
-          status: 'degraded',
-          message: `Failed to check suspicious activity: ${error.message}`
-        };
+        console.error('API health check failed:', error);
+        return 'unhealthy';
       }
 
-      const totalFailures = failedLogins.length;
-      const uniqueIPs = new Set(failedLogins.map(log => log.ip_address)).size;
-
-      // Check for potential brute force attacks
-      if (totalFailures > 50) {
-        return {
-          name: 'Suspicious Activity',
-          status: 'critical',
-          message: `High number of failed login attempts: ${totalFailures} in the last hour`,
-          details: { totalFailures, uniqueIPs }
-        };
-      }
-
-      if (totalFailures > 20) {
-        return {
-          name: 'Suspicious Activity',
-          status: 'degraded',
-          message: `Elevated failed login attempts: ${totalFailures} in the last hour`,
-          details: { totalFailures, uniqueIPs }
-        };
-      }
-
-      return {
-        name: 'Suspicious Activity',
-        status: 'healthy',
-        message: 'No suspicious activity detected'
-      };
-
+      return 'healthy';
     } catch (error) {
-      return {
-        name: 'Suspicious Activity',
-        status: 'degraded',
-        message: `Suspicious activity check error: ${error}`
-      };
+      console.error('API health check error:', error);
+      return 'unhealthy';
     }
   }
 
-  static async startMonitoring(intervalMinutes: number = 5): Promise<void> {
-    if (this.monitoringInterval) {
-      this.stopMonitoring();
-    }
-
-    this.monitoringInterval = setInterval(async () => {
-      try {
-        const healthStatus = await this.checkSystemHealth();
-        
-        if (healthStatus.overall === 'critical') {
-          await this.createAlert('critical', 'System health check failed', healthStatus);
-        } else if (healthStatus.overall === 'degraded') {
-          await this.createAlert('warning', 'System health degraded', healthStatus);
-        }
-
-        // Log health status
-        console.log(`Security Monitor: System health is ${healthStatus.overall}`);
-        
-      } catch (error) {
-        console.error('Security Monitor: Error during health check:', error);
-        await this.createAlert('error', 'Security monitoring error', { error: error.message });
-      }
-    }, intervalMinutes * 60 * 1000);
-
-    console.log(`Security monitoring started with ${intervalMinutes}-minute intervals`);
-  }
-
-  static stopMonitoring(): void {
-    if (this.monitoringInterval) {
-      clearInterval(this.monitoringInterval);
-      this.monitoringInterval = null;
-      console.log('Security monitoring stopped');
-    }
-  }
-
-  static async createAlert(
-    type: 'warning' | 'error' | 'critical',
-    message: string,
-    metadata?: any
-  ): Promise<void> {
-    const alert: SecurityAlert = {
-      id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      type,
-      message,
-      timestamp: new Date(),
-      resolved: false,
-      metadata
+  /**
+   * Determine overall system health
+   */
+  private determineOverallHealth(
+    dbHealth: 'healthy' | 'degraded' | 'unhealthy',
+    authHealth: 'healthy' | 'degraded' | 'unhealthy',
+    apiHealth: 'healthy' | 'degraded' | 'unhealthy'
+  ): 'healthy' | 'degraded' | 'unhealthy' {
+    const healthScores = {
+      healthy: 3,
+      degraded: 2,
+      unhealthy: 1,
     };
 
-    this.alerts.push(alert);
+    const totalScore = healthScores[dbHealth] + healthScores[authHealth] + healthScores[apiHealth];
+    const maxScore = 9;
 
-    // Log the alert
-    console.log(`Security Alert [${type.toUpperCase()}]: ${message}`);
+    if (totalScore === maxScore) {
+      return 'healthy';
+    } else if (totalScore >= 6) {
+      return 'degraded';
+    } else {
+      return 'unhealthy';
+    }
+  }
 
-    // Store alert in database for persistence
+  /**
+   * Get current security metrics
+   */
+  async getSecurityMetrics(): Promise<SecurityMetrics> {
     try {
-      await AuthAnalyticsService.trackSecurityEvent('security_alert', null, {
-        alertId: alert.id,
-        type: alert.type,
-        message: alert.message,
-        metadata: alert.metadata
-      });
-    } catch (error) {
-      console.error('Failed to store security alert:', error);
-    }
-  }
+      const now = new Date();
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-  static getAlerts(includeResolved: boolean = false): SecurityAlert[] {
-    if (includeResolved) {
-      return [...this.alerts];
-    }
-    return this.alerts.filter(alert => !alert.resolved);
-  }
+      // Get login statistics from audit log
+      const { data: loginEvents, error } = await supabase
+        .from('auth_audit_log')
+        .select('event_type, created_at')
+        .gte('created_at', oneDayAgo.toISOString())
+        .in('event_type', ['login_success', 'login_failed', 'mfa_verification']);
 
-  static async resolveAlert(alertId: string): Promise<boolean> {
-    const alert = this.alerts.find(a => a.id === alertId);
-    if (alert) {
-      alert.resolved = true;
-      return true;
-    }
-    return false;
-  }
+      if (error) {
+        console.error('Error fetching security metrics:', error);
+        throw error;
+      }
 
-  static async generateSecurityReport(): Promise<any> {
-    try {
-      const healthStatus = await this.checkSystemHealth();
-      const alerts = this.getAlerts(true);
-      const metrics = await AuthAnalyticsService.getSystemAuthMetrics(7);
+      const totalLogins = loginEvents?.filter(e => e.event_type === 'login_success').length || 0;
+      const failedLogins = loginEvents?.filter(e => e.event_type === 'login_failed').length || 0;
+      const mfaUsage = loginEvents?.filter(e => e.event_type === 'mfa_verification').length || 0;
+      
+      const successRate = totalLogins > 0 ? ((totalLogins - failedLogins) / totalLogins) * 100 : 100;
+      
+      // Calculate suspicious activities (simplified - could be more sophisticated)
+      const suspiciousActivities = failedLogins > 10 ? failedLogins - 10 : 0;
 
       return {
-        timestamp: new Date().toISOString(),
-        healthStatus,
-        alerts: {
-          total: alerts.length,
-          resolved: alerts.filter(a => a.resolved).length,
-          critical: alerts.filter(a => a.type === 'critical').length,
-          recent: alerts.filter(a => !a.resolved)
-        },
-        metrics,
-        recommendations: this.generateRecommendations(healthStatus, alerts, metrics)
+        totalLogins,
+        failedLogins,
+        successRate: Math.round(successRate * 100) / 100,
+        suspiciousActivities,
+        mfaUsage,
+        lastUpdated: now.toISOString(),
       };
-
     } catch (error) {
-      console.error('Error generating security report:', error);
-      return null;
+      console.error('Error getting security metrics:', error);
+      throw error;
     }
   }
 
-  private static generateRecommendations(
-    healthStatus: SecurityHealthStatus,
-    alerts: SecurityAlert[],
-    metrics: any
-  ): string[] {
-    const recommendations: string[] = [];
+  /**
+   * Get monitoring status
+   */
+  getMonitoringStatus(): { isMonitoring: boolean; checkInterval: number } {
+    return {
+      isMonitoring: this.isMonitoring,
+      checkInterval: this.checkInterval,
+    };
+  }
 
-    if (healthStatus.overall === 'critical') {
-      recommendations.push('Immediate action required: System health is critical');
+  /**
+   * Update check interval
+   */
+  updateCheckInterval(intervalMs: number): void {
+    if (intervalMs < 60000) { // Minimum 1 minute
+      throw new Error('Check interval must be at least 1 minute');
     }
 
-    if (healthStatus.overall === 'degraded') {
-      recommendations.push('System health is degraded - review and address issues');
+    this.checkInterval = intervalMs;
+    
+    if (this.isMonitoring) {
+      // Restart monitoring with new interval
+      this.stopMonitoring();
+      this.startMonitoring();
     }
-
-    const criticalAlerts = alerts.filter(a => a.type === 'critical' && !a.resolved);
-    if (criticalAlerts.length > 0) {
-      recommendations.push(`Address ${criticalAlerts.length} critical security alerts`);
-    }
-
-    if (metrics.loginSuccessRate < 95) {
-      recommendations.push('Investigate low login success rate');
-    }
-
-    if (metrics.failedLoginAttempts > 100) {
-      recommendations.push('Review failed login attempts for potential attacks');
-    }
-
-    return recommendations;
   }
 }
