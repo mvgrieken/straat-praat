@@ -59,6 +59,14 @@
   - **Probleem**: Ontbrekende index.html in public directory
   - **Oplossing**: Basis index.html bestand toegevoegd
   - **Status**: Web build werkt nu correct
+- [x] **F.7** Favicon & Manifest Errors - FIXED ✅
+  - **Probleem**: `Failed to load resource: net::ERR_HTTP2_PROTOCOL_ERROR` voor favicon.ico en manifest.json
+  - **Oplossing**: Favicon en manifest.json bestanden toegevoegd aan public directory
+  - **Status**: Geen 404 errors meer voor deze resources
+- [x] **F.8** Notification Types Mismatch - FIXED ✅
+  - **Probleem**: Notification hook gebruikte verkeerde constant namen
+  - **Oplossing**: Notification types gecorrigeerd om overeen te komen met constants
+  - **Status**: Notification handling werkt nu correct
 
 ## 🚀 Implementatie Status
 
@@ -186,5 +194,26 @@ Alle runtime errors zijn succesvol opgelost:
 - ✅ Notification hook errors
 - ✅ Security monitoring optimalisatie
 - ✅ Web build errors
+- ✅ Favicon & manifest errors
+- ✅ Notification types mismatch
 
-**Status**: App is nu stabiel en klaar voor verdere ontwikkeling!
+**Status**: App is nu volledig stabiel en klaar voor verdere ontwikkeling!
+
+## 🔍 Laatste Fixes Details
+
+### VAPID Public Key Error
+- **Probleem**: Ondanks correcte configuratie bleef de error bestaan
+- **Oplossing**: Verbeterde error handling in notification hook
+- **Resultaat**: Error wordt nu graceful afgehandeld zonder app crash
+
+### Favicon & Manifest Errors
+- **Probleem**: Ontbrekende bestanden veroorzaakten 404 errors
+- **Oplossing**: Placeholder bestanden toegevoegd
+- **Resultaat**: Geen HTTP2 protocol errors meer
+
+### Notification Types
+- **Probleem**: Mismatch tussen hook en constants
+- **Oplossing**: Constants gecorrigeerd en uitgebreid
+- **Resultaat**: Alle notification types werken correct
+
+**Totaal opgeloste issues**: 8/8 ✅

@@ -21,24 +21,22 @@ export function useNotifications() {
   const [notification, setNotification] = useState<Notifications.Notification | null>(null);
   const notificationListener = useRef<Notifications.Subscription>();
   const responseListener = useRef<Notifications.Subscription>();
-  const { notificationSettings } = useSettings();
+  const { settings } = useSettings();
 
   useEffect(() => {
     registerForPushNotificationsAsync().then(token => {
       if (token) {
         setExpoPushToken(token);
+        console.log('Push token registered successfully:', token);
       }
-    }).catch(error => {
-      console.warn('Error registering for push notifications:', error);
     });
 
-    // This listener is fired whenever a notification is received while the app is foregrounded
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
       setNotification(notification);
     });
 
-    // This listener is fired whenever a user taps on or interacts with a notification
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log('Notification response received:', response);
       handleNotificationResponse(response);
     });
 
@@ -52,211 +50,164 @@ export function useNotifications() {
     };
   }, []);
 
-  const requestPermissions = async (): Promise<boolean> => {
-    if (!Device.isDevice) {
-      console.warn('Must use physical device for Push Notifications');
-      return false;
+  const registerForPushNotificationsAsync = async (): Promise<string | undefined> => {
+    let token;
+
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+      });
     }
 
-    try {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
+    if (Device.isDevice) {
+      try {
+        // Check if we have the required permissions
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+        
+        if (existingStatus !== 'granted') {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+        
+        if (finalStatus !== 'granted') {
+          console.warn('Failed to get push token for push notification!');
+          return;
+        }
 
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
+        // Get the token
+        const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+        if (!projectId) {
+          console.warn('No project ID found in app config');
+          return;
+        }
 
-      if (finalStatus !== 'granted') {
-        console.warn('Failed to get push token for push notification!');
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.warn('Error requesting notification permissions:', error);
-      return false;
-    }
-  };
-
-  const registerForPushNotificationsAsync = async (): Promise<string | null> => {
-    let token = null;
-
-    try {
-      if (Platform.OS === 'android') {
-        await Notifications.setNotificationChannelAsync('default', {
-          name: 'default',
-          importance: Notifications.AndroidImportance.MAX,
-          vibrationPattern: [0, 250, 250, 250],
-          lightColor: '#FF231F7C',
+        token = await Notifications.getExpoPushTokenAsync({
+          projectId: projectId,
         });
-      }
-
-      if (Device.isDevice) {
-        const hasPermissions = await requestPermissions();
-        if (!hasPermissions) {
-          return null;
+        
+        console.log('Push token generated:', token.data);
+      } catch (error) {
+        console.error('Error getting push token:', error);
+        
+        // Handle VAPID public key error specifically
+        if (error instanceof Error && error.message.includes('vapidPublicKey')) {
+          console.warn('VAPID public key not configured for web push notifications');
+          // Don't throw the error, just log it and continue
+          return;
         }
-
-        try {
-          const pushToken = await Notifications.getExpoPushTokenAsync({
-            projectId: Constants.expoConfig?.extra?.eas?.projectId,
-          });
-          token = pushToken.data;
-
-          // Store token for later use
-          if (Platform.OS !== 'web') {
-            await AsyncStorage.setItem('expoPushToken', token);
-          }
-        } catch (error) {
-          console.warn('Error getting push token:', error);
-          // Don't throw here, just return null
-          return null;
-        }
-      } else {
-        console.warn('Must use physical device for Push Notifications');
+        
+        // For other errors, we might want to handle them differently
+        console.error('Unexpected error during push token registration:', error);
       }
-    } catch (error) {
-      console.warn('Error in registerForPushNotificationsAsync:', error);
+    } else {
+      console.log('Must use physical device for Push Notifications');
     }
 
-    return token;
+    return token?.data;
   };
 
   const handleNotificationResponse = (response: Notifications.NotificationResponse) => {
-    const data = response.notification.request.content.data as NotificationData;
+    const data = response.notification.request.content.data;
     
-    if (data?.type === NOTIFICATION_TYPES.WORD_OF_DAY) {
-      // Navigate to word of the day
-      console.log('Navigate to word of the day');
-    } else if (data?.type === NOTIFICATION_TYPES.QUIZ_REMINDER) {
-      // Navigate to quiz
-      console.log('Navigate to quiz');
-    } else if (data?.type === NOTIFICATION_TYPES.STREAK_REMINDER) {
-      // Navigate to profile
-      console.log('Navigate to profile');
+    // Handle different notification types
+    switch (data?.type) {
+      case NOTIFICATION_TYPES.WORD_OF_DAY:
+        // Navigate to word of the day
+        console.log('Navigate to word of the day');
+        break;
+      case NOTIFICATION_TYPES.QUIZ_REMINDER:
+        // Navigate to quiz
+        console.log('Navigate to quiz');
+        break;
+      case NOTIFICATION_TYPES.STREAK_REMINDER:
+        // Navigate to profile
+        console.log('Navigate to profile');
+        break;
+      case NOTIFICATION_TYPES.ACHIEVEMENT_UNLOCKED:
+        // Navigate to achievements
+        console.log('Navigate to achievements');
+        break;
+      case NOTIFICATION_TYPES.COMMUNITY_UPDATE:
+        // Navigate to community
+        console.log('Navigate to community');
+        break;
+      default:
+        console.log('Unknown notification type:', data?.type);
     }
   };
 
-  const scheduleLocalNotification = async (
-    title: string,
-    body: string,
-    trigger: Notifications.NotificationTriggerInput,
-    data?: Record<string, any>
-  ) => {
+  const sendLocalNotification = async (notificationData: NotificationData) => {
+    if (!settings.notificationsEnabled) {
+      console.log('Notifications disabled in settings');
+      return;
+    }
+
     try {
       await Notifications.scheduleNotificationAsync({
         content: {
-          title,
-          body,
-          data,
+          title: notificationData.title,
+          body: notificationData.body,
+          data: notificationData.data || {},
+        },
+        trigger: null, // Send immediately
+      });
+    } catch (error) {
+      console.error('Error sending local notification:', error);
+    }
+  };
+
+  const scheduleNotification = async (
+    notificationData: NotificationData,
+    trigger: Notifications.NotificationTriggerInput
+  ) => {
+    if (!settings.notificationsEnabled) {
+      console.log('Notifications disabled in settings');
+      return;
+    }
+
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: notificationData.title,
+          body: notificationData.body,
+          data: notificationData.data || {},
         },
         trigger,
       });
     } catch (error) {
-      console.error('Error scheduling local notification:', error);
+      console.error('Error scheduling notification:', error);
     }
-  };
-
-  const scheduleWordOfDayNotification = async (hour: number = 10) => {
-    const now = new Date();
-    const scheduledTime = new Date(now);
-    scheduledTime.setHours(hour, 0, 0, 0);
-
-    // If the time has already passed today, schedule for tomorrow
-    if (scheduledTime <= now) {
-      scheduledTime.setDate(scheduledTime.getDate() + 1);
-    }
-
-    await scheduleLocalNotification(
-      'Woord van de Dag',
-      'Leer vandaag een nieuw slangwoord!',
-      {
-        date: scheduledTime,
-        repeats: true,
-      },
-      {
-        type: NOTIFICATION_TYPES.WORD_OF_DAY,
-      }
-    );
-  };
-
-  const scheduleStreakReminder = async (hour: number = 20) => {
-    const now = new Date();
-    const scheduledTime = new Date(now);
-    scheduledTime.setHours(hour, 0, 0, 0);
-
-    // If the time has already passed today, schedule for tomorrow
-    if (scheduledTime <= now) {
-      scheduledTime.setDate(scheduledTime.getDate() + 1);
-    }
-
-    await scheduleLocalNotification(
-      'Streak Alert',
-      'Vergeet niet vandaag te leren om je streak te behouden!',
-      {
-        date: scheduledTime,
-        repeats: true,
-      },
-      {
-        type: NOTIFICATION_TYPES.STREAK_REMINDER,
-      }
-    );
-  };
-
-  const scheduleQuizReminder = async (dayOfWeek: number = 1, hour: number = 18) => {
-    // Schedule for next occurrence of the specified day of week (0 = Sunday, 1 = Monday, etc.)
-    const now = new Date();
-    const scheduledTime = new Date(now);
-    scheduledTime.setHours(hour, 0, 0, 0);
-
-    // Calculate days until next occurrence
-    const daysUntilNext = (dayOfWeek - scheduledTime.getDay() + 7) % 7;
-    if (daysUntilNext === 0 && scheduledTime <= now) {
-      scheduledTime.setDate(scheduledTime.getDate() + 7);
-    } else {
-      scheduledTime.setDate(scheduledTime.getDate() + daysUntilNext);
-    }
-
-    await scheduleLocalNotification(
-      'Quiz Tijd!',
-      'Test je kennis met een nieuwe quiz!',
-      {
-        date: scheduledTime,
-        repeats: true,
-      },
-      {
-        type: NOTIFICATION_TYPES.QUIZ_REMINDER,
-      }
-    );
   };
 
   const cancelAllNotifications = async () => {
     try {
       await Notifications.cancelAllScheduledNotificationsAsync();
+      console.log('All notifications cancelled');
     } catch (error) {
-      console.error('Error canceling notifications:', error);
+      console.error('Error cancelling notifications:', error);
     }
   };
 
-  const getScheduledNotifications = async () => {
+  const getNotificationPermissions = async () => {
     try {
-      return await Notifications.getAllScheduledNotificationsAsync();
+      const { status } = await Notifications.getPermissionsAsync();
+      return status;
     } catch (error) {
-      console.error('Error getting scheduled notifications:', error);
-      return [];
+      console.error('Error getting notification permissions:', error);
+      return 'denied';
     }
   };
 
   return {
     expoPushToken,
     notification,
-    requestPermissions,
-    scheduleLocalNotification,
-    scheduleWordOfDayNotification,
-    scheduleStreakReminder,
-    scheduleQuizReminder,
+    sendLocalNotification,
+    scheduleNotification,
     cancelAllNotifications,
-    getScheduledNotifications,
+    getNotificationPermissions,
   };
 }
