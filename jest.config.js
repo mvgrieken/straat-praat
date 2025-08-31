@@ -5,44 +5,38 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   testMatch: [
     '**/__tests__/**/*.(ts|tsx|js)',
-    '**/*.(test|spec).(ts|tsx|js)'
+    '**/*.(test|spec).(ts|tsx|js)',
   ],
   collectCoverageFrom: [
-    'services/**/*.{ts,tsx}',
+    '**/*.{ts,tsx}',
+    '!**/coverage/**',
     '!**/node_modules/**',
-    '!**/dist/**',
-    '!**/build/**',
-    '!**/.expo/**',
-    '!**/supabase/functions/**',
-    '!**/app/**',
-    '!**/components/**',
-    '!**/hooks/**',
-    '!**/types/**',
-    '!**/constants/**',
-    '!**/scripts/**',
-    '!**/src/lib/types/**',
-    '!**/src/lib/validations/**',
-    '!**/src/env.ts',
+    '!**/babel.config.js',
     '!**/jest.setup.js',
     '!**/jest.config.js',
-    '!**/.eslintrc.js',
-    '!**/expo-env.d.ts',
-    '!**/router.d.ts',
-    '!**/nativewind.d.ts',
-    '!**/database.types.ts'
+    '!**/metro.config.js',
+    '!**/tailwind.config.js',
+    '!**/app.json',
+    '!**/package.json',
+    '!**/tsconfig.json',
+    '!**/supabase/**',
+    '!**/dist-web/**',
+    '!**/public/**',
   ],
   coverageThreshold: {
     global: {
       branches: 70,
       functions: 70,
       lines: 70,
-      statements: 70
-    }
+      statements: 70,
+    },
   },
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1'
+    '^@/(.*)$': '<rootDir>/$1',
   },
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest'
-  }
+    '^.+\\.(ts|tsx)$': 'ts-jest',
+  },
+  clearMocks: true,
+  restoreMocks: true,
 };

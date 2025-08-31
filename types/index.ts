@@ -75,15 +75,15 @@ export interface Database {
 export interface SlangWord {
   id: string;
   word: string;
-  meaning: string;
+  meaning: string | null;
   example?: string | null;
   audio_url?: string | null;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: string | null;
   category?: string | null;
   word_of_the_day_id?: string | null;
   definition?: string; // Legacy column
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface Profile {
@@ -122,13 +122,13 @@ export interface UserProgress {
   id?: string;
   user_id: string;
   word_id: string;
-  mastery_level: number; // 0-100
-  times_reviewed: number;
-  correct_answers: number;
-  incorrect_answers: number;
+  mastery_level: number | null; // 0-100
+  times_reviewed: number | null;
+  correct_answers: number | null;
+  incorrect_answers: number | null;
   last_reviewed_at: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface Quiz {
@@ -203,8 +203,8 @@ export interface WordOfTheDay {
   example: string | null;
   scheduled_date: string;
   date: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface FavoriteWord {

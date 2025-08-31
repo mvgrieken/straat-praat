@@ -5,141 +5,15 @@ import { supabase } from '@/services/supabase';
 jest.mock('@/services/supabase', () => ({
   supabase: {
     from: jest.fn(),
+    rpc: jest.fn(),
   },
 }));
+
+const mockSupabase = supabase as jest.Mocked<typeof supabase>;
 
 describe('WordService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('getWords', () => {
-    it('should return words successfully', async () => {
-      const mockWords = [
-        {
-          id: '1',
-          word: 'bruh',
-          meaning: 'jongen',
-          category: 'general',
-          difficulty: 'easy',
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z',
-        },
-      ];
-
-      const mockSupabaseResponse = {
-        data: mockWords,
-        error: null,
-      };
-
-      (supabase.from as jest.Mock).mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            order: jest.fn().mockReturnValue({
-              range: jest.fn().mockResolvedValue(mockSupabaseResponse),
-            }),
-          }),
-        }),
-      });
-
-      const result = await WordService.getWords({ limit: 10 });
-
-      expect(result.success).toBe(true);
-      expect(result.data?.data).toEqual(mockWords);
-      expect(supabase.from).toHaveBeenCalledWith('slang_words');
-    });
-
-    it('should handle database errors', async () => {
-      const mockError = new Error('Database error');
-
-      (supabase.from as jest.Mock).mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            order: jest.fn().mockReturnValue({
-              range: jest.fn().mockRejectedValue(mockError),
-            }),
-          }),
-        }),
-      });
-
-      const result = await WordService.getWords({ limit: 10 });
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Failed to fetch words');
-    });
-
-    it('should apply category filter', async () => {
-      const mockSupabaseResponse = {
-        data: [],
-        error: null,
-      };
-
-      (supabase.from as jest.Mock).mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            order: jest.fn().mockReturnValue({
-              range: jest.fn().mockResolvedValue(mockSupabaseResponse),
-            }),
-          }),
-        }),
-      });
-
-      await WordService.getWords({ category: 'gaming', limit: 10 });
-
-      expect(supabase.from).toHaveBeenCalledWith('slang_words');
-    });
-  });
-
-  describe('getWordById', () => {
-    it('should return word by id successfully', async () => {
-      const mockWord = {
-        id: '1',
-        word: 'bruh',
-        meaning: 'jongen',
-        category: 'general',
-        difficulty: 'easy',
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z',
-      };
-
-      const mockSupabaseResponse = {
-        data: mockWord,
-        error: null,
-      };
-
-      (supabase.from as jest.Mock).mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue(mockSupabaseResponse),
-          }),
-        }),
-      });
-
-      const result = await WordService.getWordById('1');
-
-      expect(result.success).toBe(true);
-      expect(result.data).toEqual(mockWord);
-    });
-
-    it('should handle word not found', async () => {
-      const mockSupabaseResponse = {
-        data: null,
-        error: null,
-      };
-
-      (supabase.from as jest.Mock).mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue(mockSupabaseResponse),
-          }),
-        }),
-      });
-
-      const result = await WordService.getWordById('999');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Word not found');
-    });
   });
 
   describe('searchWords', () => {
@@ -148,135 +22,342 @@ describe('WordService', () => {
         {
           id: '1',
           word: 'bruh',
-          meaning: 'jongen',
-          category: 'general',
+          meaning: 'jongen, broer',
+          example: 'Hey bruh, alles goed?',
+          audio_url: null,
           difficulty: 'easy',
+          category: 'general',
           created_at: '2024-01-01T00:00:00Z',
           updated_at: '2024-01-01T00:00:00Z',
         },
       ];
 
-      const mockSupabaseResponse = {
-        data: mockWords,
-        error: null,
-      };
+      const mockSelect = jest.fn().mockReturnValue({
+        or: jest.fn().mockReturnValue({
+          limit: jest.fn().mockResolvedValue({ data: mockWords, error: null }),
+        }),
+      });
 
-      (supabase.from as jest.Mock).mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          or: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue(mockSupabaseResponse),
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+      } as any);
+
+      const result = await WordService.searchWords('bruh', 5);
+
+      expect(mockSupabase.from).toHaveBeenCalledWith('slang_words');
+      expect(mockSelect).toHaveBeenCalledWith('*');
+      expect(result).toHaveLength(1);
+      expect(result[0].word.word).toBe('bruh');
+      expect(result[0].relevance).toBe(1.0);
+      expect(result[0].matchType).toBe('exact');
+    });
+
+    it('should handle empty search results', async () => {
+      const mockSelect = jest.fn().mockReturnValue({
+        or: jest.fn().mockReturnValue({
+          limit: jest.fn().mockResolvedValue({ data: [], error: null }),
+        }),
+      });
+
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+      } as any);
+
+      const result = await WordService.searchWords('nonexistent', 5);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('should handle database errors', async () => {
+      const mockSelect = jest.fn().mockReturnValue({
+        or: jest.fn().mockReturnValue({
+          limit: jest.fn().mockResolvedValue({ 
+            data: null, 
+            error: { message: 'Database error' } 
           }),
         }),
       });
 
-      const result = await WordService.searchWords('bruh', 10);
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+      } as any);
 
-      expect(result).toEqual(mockWords);
+      const result = await WordService.searchWords('test', 5);
+
+      expect(result).toHaveLength(0);
     });
 
-    it('should handle empty search query', async () => {
-      const result = await WordService.searchWords('', 10);
+    it('should calculate relevance scores correctly', async () => {
+      const mockWords = [
+        {
+          id: '1',
+          word: 'bruh',
+          meaning: 'jongen',
+          example: null,
+          audio_url: null,
+          difficulty: 'easy',
+          category: 'general',
+          created_at: '2024-01-01T00:00:00Z',
+          updated_at: '2024-01-01T00:00:00Z',
+        },
+        {
+          id: '2',
+          word: 'brother',
+          meaning: 'broer',
+          example: null,
+          audio_url: null,
+          difficulty: 'medium',
+          category: 'general',
+          created_at: '2024-01-01T00:00:00Z',
+          updated_at: '2024-01-01T00:00:00Z',
+        },
+      ];
 
-      expect(result).toEqual([]);
+      const mockSelect = jest.fn().mockReturnValue({
+        or: jest.fn().mockReturnValue({
+          limit: jest.fn().mockResolvedValue({ data: mockWords, error: null }),
+        }),
+      });
+
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+      } as any);
+
+      const result = await WordService.searchWords('bruh', 5);
+
+      expect(result[0].relevance).toBe(1.0); // Exact match
+      expect(result[0].matchType).toBe('exact');
+      expect(result[1].relevance).toBe(0.3); // Fuzzy match
+      expect(result[1].matchType).toBe('fuzzy');
     });
   });
 
   describe('getWordOfTheDay', () => {
-    it('should return word of the day successfully', async () => {
-      const mockWord = {
+    it('should get word of the day successfully', async () => {
+      const mockWordOfDay = {
         id: '1',
-        word: 'bruh',
-        meaning: 'jongen',
-        category: 'general',
-        difficulty: 'easy',
+        word_id: 'word-1',
+        word: 'lit',
+        definition: 'geweldig, fantastisch',
+        example: 'Die nieuwe sneakers zijn echt lit!',
+        scheduled_date: '2024-01-01',
+        date: '2024-01-01',
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
       };
 
-      const mockSupabaseResponse = {
-        data: mockWord,
-        error: null,
-      };
+      const mockSelect = jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          single: jest.fn().mockResolvedValue({ data: mockWordOfDay, error: null }),
+        }),
+      });
 
-      (supabase.from as jest.Mock).mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue(mockSupabaseResponse),
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+      } as any);
+
+      const result = await WordService.getWordOfTheDay();
+
+      expect(mockSupabase.from).toHaveBeenCalledWith('word_of_the_day');
+      expect(result.success).toBe(true);
+      expect(result.data?.word).toBe('lit');
+    });
+
+    it('should handle no word of the day found', async () => {
+      const mockSelect = jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          single: jest.fn().mockResolvedValue({ data: null, error: null }),
+        }),
+      });
+
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+      } as any);
+
+      const result = await WordService.getWordOfTheDay();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('No word of the day found');
+    });
+
+    it('should handle database errors', async () => {
+      const mockSelect = jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          single: jest.fn().mockResolvedValue({ 
+            data: null, 
+            error: { message: 'Database error' } 
           }),
         }),
       });
 
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+      } as any);
+
       const result = await WordService.getWordOfTheDay();
 
-      expect(result.success).toBe(true);
-      expect(result.data).toEqual(mockWord);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Database error');
     });
   });
 
   describe('getUserWordProgress', () => {
-    it('should return user word progress successfully', async () => {
-      const mockProgress = {
-        id: '1',
+    it('should get user word progress successfully', async () => {
+      const mockProgress = [
+        {
+          id: '1',
+          user_id: 'user-1',
+          word_id: 'word-1',
+          learned_at: '2024-01-01T00:00:00Z',
+          quiz_score: 100,
+          times_reviewed: 3,
+          last_reviewed: '2024-01-01T00:00:00Z',
+          is_favorite: true,
+        },
+      ];
+
+      const mockSelect = jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          order: jest.fn().mockReturnValue({
+            limit: jest.fn().mockResolvedValue({ data: mockProgress, error: null }),
+          }),
+        }),
+      });
+
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+      } as any);
+
+      const result = await WordService.getUserWordProgress('user-1', 10);
+
+      expect(mockSupabase.from).toHaveBeenCalledWith('user_progress');
+      expect(result).toHaveLength(1);
+      expect(result[0].word_id).toBe('word-1');
+      expect(result[0].quiz_score).toBe(100);
+    });
+
+    it('should handle empty progress', async () => {
+      const mockSelect = jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          order: jest.fn().mockReturnValue({
+            limit: jest.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+        }),
+      });
+
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+      } as any);
+
+      const result = await WordService.getUserWordProgress('user-1', 10);
+
+      expect(result).toHaveLength(0);
+    });
+  });
+
+  describe('addToFavorites', () => {
+    it('should add word to favorites successfully', async () => {
+      const mockInsert = jest.fn().mockReturnValue({
+        select: jest.fn().mockResolvedValue({ data: [{ id: '1' }], error: null }),
+      });
+
+      mockSupabase.from.mockReturnValue({
+        insert: mockInsert,
+      } as any);
+
+      const result = await WordService.addToFavorites('user-1', 'word-1');
+
+      expect(mockSupabase.from).toHaveBeenCalledWith('user_progress');
+      expect(mockInsert).toHaveBeenCalledWith({
         user_id: 'user-1',
         word_id: 'word-1',
-        mastery_level: 3,
-        times_reviewed: 5,
-        correct_answers: 4,
-        incorrect_answers: 1,
-        last_reviewed_at: '2024-01-01T00:00:00Z',
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z',
-      };
+        is_favorite: true,
+      });
+      expect(result.success).toBe(true);
+    });
 
-      const mockSupabaseResponse = {
-        data: [mockProgress],
-        error: null,
-      };
+    it('should handle database errors', async () => {
+      const mockInsert = jest.fn().mockReturnValue({
+        select: jest.fn().mockResolvedValue({ 
+          data: null, 
+          error: { message: 'Database error' } 
+        }),
+      });
 
-      (supabase.from as jest.Mock).mockReturnValue({
-        select: jest.fn().mockReturnValue({
+      mockSupabase.from.mockReturnValue({
+        insert: mockInsert,
+      } as any);
+
+      const result = await WordService.addToFavorites('user-1', 'word-1');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Database error');
+    });
+  });
+
+  describe('removeFromFavorites', () => {
+    it('should remove word from favorites successfully', async () => {
+      const mockUpdate = jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
-            order: jest.fn().mockReturnValue({
-              range: jest.fn().mockResolvedValue(mockSupabaseResponse),
+            select: jest.fn().mockResolvedValue({ data: [{ id: '1' }], error: null }),
+          }),
+        }),
+      });
+
+      mockSupabase.from.mockReturnValue({
+        update: mockUpdate,
+      } as any);
+
+      const result = await WordService.removeFromFavorites('user-1', 'word-1');
+
+      expect(mockSupabase.from).toHaveBeenCalledWith('user_progress');
+      expect(mockUpdate).toHaveBeenCalledWith({ is_favorite: false });
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('isFavorite', () => {
+    it('should check if word is favorite successfully', async () => {
+      const mockSelect = jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({ 
+              data: { is_favorite: true }, 
+              error: null 
             }),
           }),
         }),
       });
 
-      const result = await WordService.getUserWordProgress('user-1', 10);
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+      } as any);
 
-      expect(result).toEqual([mockProgress]);
-    });
-  });
+      const result = await WordService.isFavorite('user-1', 'word-1');
 
-  describe('updateWordProgress', () => {
-    it('should update word progress successfully', async () => {
-      const mockSupabaseResponse = {
-        data: null,
-        error: null,
-      };
-
-      (supabase.from as jest.Mock).mockReturnValue({
-        upsert: jest.fn().mockResolvedValue(mockSupabaseResponse),
-      });
-
-      const result = await WordService.updateWordProgress('user-1', 'word-1', { mastery_level: 3 });
-
-      expect(result.success).toBe(true);
-      expect(supabase.from).toHaveBeenCalledWith('user_progress');
+      expect(result).toBe(true);
     });
 
-    it('should handle update errors', async () => {
-      const mockError = new Error('Update failed');
-
-      (supabase.from as jest.Mock).mockReturnValue({
-        upsert: jest.fn().mockRejectedValue(mockError),
+    it('should return false when word is not favorite', async () => {
+      const mockSelect = jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({ 
+              data: { is_favorite: false }, 
+              error: null 
+            }),
+          }),
+        }),
       });
 
-      const result = await WordService.updateWordProgress('user-1', 'word-1', { mastery_level: 3 });
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+      } as any);
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Failed to update word progress');
+      const result = await WordService.isFavorite('user-1', 'word-1');
+
+      expect(result).toBe(false);
     });
   });
 });

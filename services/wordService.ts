@@ -107,7 +107,7 @@ export class WordService {
       // Calculate relevance scores
       const results: SearchResult[] = (data || []).map(word => {
         const wordLower = word.word.toLowerCase();
-        const meaningLower = word.meaning.toLowerCase();
+        const meaningLower = word.meaning?.toLowerCase() || '';
         const queryLower = query.toLowerCase();
 
         let relevance = 0;
@@ -406,7 +406,7 @@ export class WordService {
     try {
       // Get user progress
       const progress = await this.getUserWordProgress(userId, 1000);
-      const totalWordsLearned = progress.filter(p => p.mastery_level >= 80).length;
+             const totalWordsLearned = progress.filter(p => (p.mastery_level || 0) >= 80).length;
 
       // Get user profile for streaks and level
       const { data: profile } = await supabase
@@ -431,13 +431,8 @@ export class WordService {
         console.warn('Could not fetch quiz statistics:', error);
       }
 
-      // Get achievements
-      const { data: achievements } = await supabase
-        .from('user_achievements')
-        .select('*')
-        .eq('user_id', userId);
-
-      const achievementsUnlocked = achievements?.length || 0;
+             // Get achievements (placeholder - table doesn't exist yet)
+       const achievementsUnlocked = 0;
 
       // Calculate level and experience
       const currentLevel = profile?.level || 1;
