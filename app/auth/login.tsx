@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { router } from 'expo-router';
+import { router, Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '@/hooks/useAuth';
-import { TextField } from '@/components/forms/TextField';
-import { CheckboxField } from '@/components/forms/CheckboxField';
-import { loginSchema, LoginFormData } from '@/schemas/auth';
-import { styles } from '@/styles/auth';
+import TextField from '@/components/forms/TextField';
+import CheckboxField from '@/components/forms/CheckboxField';
+import { loginSchema, LoginFormData } from '@/src/lib/validations/auth';
 
 interface AccountStatus {
   locked: boolean;

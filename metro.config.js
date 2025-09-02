@@ -7,7 +7,4 @@ config.resolver.alias = {
   ...config.resolver.alias,
 };
 
-// Add NativeWind transformer
-config.transformer.babelTransformerPath = require.resolve('nativewind/metro');
-
 module.exports = config;
