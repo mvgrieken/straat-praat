@@ -41,6 +41,21 @@ interface ExperienceResponse {
   };
 }
 
+interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  experienceReward: number;
+}
+
+interface UserAchievement {
+  id: string;
+  user_id: string;
+  achievement_id: string;
+  unlocked_at: string;
+  achievement: Achievement;
+}
+
 export class GamificationService {
   private static instance: GamificationService;
 
@@ -279,7 +294,7 @@ export class GamificationService {
     }
   }
 
-  async awardAchievement(userId: string, achievement: any): Promise<void> {
+  async awardAchievement(userId: string, achievement: Achievement): Promise<void> {
     try {
       // Add achievement to user's achievements
       await supabase
@@ -311,7 +326,7 @@ export class GamificationService {
     return !!data;
   }
 
-  async getUserAchievements(userId: string): Promise<any> { // Changed ApiResponse to any for now
+  async getUserAchievements(userId: string): Promise<{ success: boolean; data?: UserAchievement[]; error?: string }> {
     try {
       const { data, error } = await supabase
         .from('user_achievements')
@@ -332,7 +347,7 @@ export class GamificationService {
   }
 
   // Stats and Progress Tracking
-  async getUserStats(userId: string): Promise<any> { // Changed ApiResponse to any for now
+  async getUserStats(userId: string): Promise<{ success: boolean; data?: UserStats; error?: string }> {
     try {
       // Get basic profile info
       const { data: profile } = await supabase

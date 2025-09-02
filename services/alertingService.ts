@@ -77,6 +77,22 @@ interface AlertDetails {
   metadata?: Record<string, string | number | boolean>;
 }
 
+interface AlertStats {
+  total: number;
+  bySeverity: {
+    low: number;
+    medium: number;
+    high: number;
+    critical: number;
+  };
+  byStatus: {
+    active: number;
+    acknowledged: number;
+    resolved: number;
+  };
+  byRule: Record<string, number>;
+}
+
 export class AlertingService {
   private static readonly DEFAULT_RULES: AlertRule[] = [
     {
@@ -641,7 +657,7 @@ export class AlertingService {
   /**
    * Get alert statistics
    */
-  static async getAlertStats(days: number = 7): Promise<any> {
+  static async getAlertStats(days: number = 7): Promise<AlertStats> {
     try {
       const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
@@ -654,7 +670,7 @@ export class AlertingService {
         throw new Error(`Failed to fetch alert stats: ${error.message}`);
       }
 
-      const stats = {
+      const stats: AlertStats = {
         total: alerts?.length || 0,
         bySeverity: {
           low: 0,
@@ -683,7 +699,12 @@ export class AlertingService {
       return stats;
     } catch (error) {
       console.error('Error fetching alert stats:', error);
-      return {};
+      return {
+        total: 0,
+        bySeverity: { low: 0, medium: 0, high: 0, critical: 0 },
+        byStatus: { active: 0, acknowledged: 0, resolved: 0 },
+        byRule: {},
+      };
     }
   }
 }
