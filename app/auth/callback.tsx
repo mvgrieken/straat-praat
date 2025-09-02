@@ -6,13 +6,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { COLORS } from '@/constants';
 import { supabase } from '@/services/supabase';
 
-export default function AuthCallback() {
-  const params = useLocalSearchParams();
+export default function AuthCallbackScreen() {
+  const { user } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const { access_token, refresh_token, type } = useLocalSearchParams();
+
+  const handleBackToLogin = () => router.replace('/auth/login');
 
   useEffect(() => {
     handleAuthCallback();
-  }, []);
+  }, [access_token, refresh_token, type]);
 
   const handleAuthCallback = async () => {
     try {
@@ -102,7 +105,7 @@ export default function AuthCallback() {
           <Text style={styles.errorMessage}>{error}</Text>
           <Text 
             style={styles.errorLink}
-            onPress={() => router.replace('/auth/login')}
+            onPress={handleBackToLogin}
           >
             Terug naar inloggen
           </Text>
