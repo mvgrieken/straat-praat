@@ -43,7 +43,7 @@ export default function ProfileScreen() {
           onPress: async () => {
             try {
               await signOut();
-              router.replace('/auth/login' as any);
+              router.replace('/auth/login');
             } catch (error) {
               Alert.alert('Fout', 'Er is iets misgegaan bij het uitloggen.');
             }

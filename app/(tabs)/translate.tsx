@@ -1,28 +1,22 @@
-import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
-import { AITranslator } from '@/components/AITranslator';
-import { RecentSearches } from '@/components/RecentSearches';
-import { SearchBar } from '@/components/SearchBar';
 import { COLORS } from '@/constants';
 import { useSettings } from '@/hooks/useSettings';
-import { WordService, WordSearchResult } from '@/services/wordService.simple';
+import { WordService } from '@/services/wordService';
+import { SearchBar } from '@/components/SearchBar';
+import { RecentSearches } from '@/components/RecentSearches';
+import { AITranslator } from '@/components/AITranslator';
+import { Word, TranslationResult } from '@/types';
 
 export default function TranslateScreen() {
   const { settings } = useSettings();
   const [mode, setMode] = useState<'search' | 'translate'>('search');
-  const [selectedWord, setSelectedWord] = useState<any>(null);
+  const [selectedWord, setSelectedWord] = useState<Word | null>(null);
   const [translationInput, setTranslationInput] = useState('');
-  const [translationResult, setTranslationResult] = useState<any>(null);
+  const [translationResult, setTranslationResult] = useState<TranslationResult | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const [direction, setDirection] = useState<'to_formal' | 'to_slang'>('to_formal');
 

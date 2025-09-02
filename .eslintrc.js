@@ -36,7 +36,7 @@ module.exports = {
     'react/jsx-no-undef': 'error',
     'react/jsx-no-duplicate-props': 'error',
     'react/jsx-key': 'error',
-    'react/jsx-no-bind': 'warn',
+    'react/jsx-no-bind': ['warn', { allowArrowFunctions: true, allowBind: false, ignoreRefs: true }],
     'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
     'react/jsx-fragments': 'error',
     'react/jsx-no-useless-fragment': 'error',
