@@ -6,10 +6,10 @@ import { SecurityReport, ReportType, ReportStatus } from '@/types';
 
 export interface SecurityReport {
   id: string;
-  type: 'user_activity' | 'security_incident' | 'compliance' | 'threat_intelligence' | 'system_health';
+  type: 'user_activity' | 'security_incident' | 'compliance' | 'threat_intelligence' | 'vulnerability' | 'system_health';
   title: string;
   description: string;
-  data: any;
+  data: UserActivityReport | SecurityIncidentReport | ComplianceReport | ThreatIntelligenceReport | VulnerabilityReport | SystemHealthReport;
   generatedAt: Date;
   period: {
     start: Date;

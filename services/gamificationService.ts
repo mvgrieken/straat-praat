@@ -56,6 +56,36 @@ interface UserAchievement {
   achievement: Achievement;
 }
 
+interface LeaderboardEntry {
+  id: string;
+  username: string;
+  level: number;
+  experience_points: number;
+  total_words_learned: number;
+  current_streak: number;
+}
+
+interface DailyChallenge {
+  id: string;
+  user_id: string;
+  type: string;
+  target: number;
+  date: string;
+  completed: boolean;
+}
+
+interface LeaderboardResponse {
+  success: boolean;
+  data?: LeaderboardEntry[];
+  error?: string;
+}
+
+interface DailyChallengeResponse {
+  success: boolean;
+  data?: DailyChallenge;
+  error?: string;
+}
+
 export class GamificationService {
   private static instance: GamificationService;
 
@@ -509,7 +539,7 @@ export class GamificationService {
   }
 
   // Leaderboard
-  async getLeaderboard(limit: number = 10): Promise<any> { // Changed ApiResponse to any for now
+  async getLeaderboard(limit: number = 10): Promise<LeaderboardResponse> {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -534,13 +564,13 @@ export class GamificationService {
   }
 
   // Daily Challenges (simplified - no database table)
-  async getDailyChallenge(userId: string): Promise<any> { // Changed ApiResponse to any for now
+  async getDailyChallenge(userId: string): Promise<DailyChallengeResponse> {
     try {
       // Generate a simple daily challenge without database storage
       const challengeTypes = ['learn_words', 'complete_quiz', 'maintain_streak'];
       const randomType = challengeTypes[Math.floor(Math.random() * challengeTypes.length)] || 'learn_words';
       
-      const newChallenge = {
+      const newChallenge: DailyChallenge = {
         id: `challenge_${Date.now()}`,
         user_id: userId,
         type: randomType,
