@@ -17,13 +17,41 @@ export interface SystemHealth {
   api: 'healthy' | 'degraded' | 'unhealthy';
   overall: 'healthy' | 'degraded' | 'unhealthy';
   lastChecked: string;
+  uptime: number;
+  lastOutage: Date | null;
+}
+
+export interface PerformanceMetrics {
+  averageResponseTime: number;
+  peakResponseTime: number;
+  errorRate: number;
+  throughput: number;
+  latency: {
+    p50: number;
+    p95: number;
+    p99: number;
+  };
+  resourceUsage: {
+    cpu: number;
+    memory: number;
+    database: number;
+  };
+  lastUpdated: string;
+}
+
+export interface SystemMetrics {
+  security: SecurityMetrics;
+  health: SystemHealth;
+  performance: PerformanceMetrics;
 }
 
 export class SecurityMonitor {
   private static instance: SecurityMonitor;
-  private monitoringInterval: NodeJS.Timeout | null = null;
-  private isMonitoring = false;
-  private checkInterval = 10 * 60 * 1000; // 10 minutes instead of 5
+  private isMonitoring: boolean = false;
+  private checkInterval: number = 5 * 60 * 1000; // 5 minutes
+  private monitoringInterval?: NodeJS.Timeout;
+  private performanceHistory: PerformanceMetrics[] = [];
+  private readonly MAX_HISTORY_SIZE = 100;
 
   private constructor() {}
 
@@ -35,48 +63,29 @@ export class SecurityMonitor {
   }
 
   /**
-   * Start security monitoring
+   * Start monitoring
    */
-  async startMonitoring(): Promise<void> {
+  startMonitoring(): void {
     if (this.isMonitoring) {
-      console.log('Security monitoring is already running');
+      console.log('Monitoring is already active');
       return;
     }
 
-    try {
-      console.log('Security monitoring started with 10-minute intervals');
-      this.isMonitoring = true;
+    this.isMonitoring = true;
+    this.monitoringInterval = setInterval(() => {
+      this.performHealthCheck();
+    }, this.checkInterval);
 
-      // Initial health check
-      await this.performHealthCheck();
-
-      // Set up periodic monitoring
-      this.monitoringInterval = setInterval(async () => {
-        try {
-          await this.performHealthCheck();
-        } catch (error) {
-          console.error('Error during periodic health check:', error);
-          await SecurityEventLogger.logEvent('security_monitor_error', {
-            error: error instanceof Error ? error.message : 'Unknown error',
-            timestamp: new Date().toISOString(),
-          });
-        }
-      }, this.checkInterval);
-
-    } catch (error) {
-      console.error('Failed to start security monitoring:', error);
-      this.isMonitoring = false;
-      throw error;
-    }
+    console.log('Security monitoring started');
   }
 
   /**
-   * Stop security monitoring
+   * Stop monitoring
    */
   stopMonitoring(): void {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
-      this.monitoringInterval = null;
+      this.monitoringInterval = undefined;
     }
     this.isMonitoring = false;
     console.log('Security monitoring stopped');
@@ -107,6 +116,8 @@ export class SecurityMonitor {
         api: apiHealth,
         overall: overallHealth,
         lastChecked: new Date().toISOString(),
+        uptime: 99.9, // This would be calculated from actual uptime data
+        lastOutage: null // This would be tracked from actual outage data
       };
 
       // Log health status
@@ -152,11 +163,11 @@ export class SecurityMonitor {
     try {
       const startTime = Date.now();
       
-      // Test basic database connectivity
+      // Test database connectivity with a simple query
       const { data, error } = await supabase
-          .from('profiles')
-          .select('count')
-          .limit(1);
+        .from('profiles')
+        .select('id')
+        .limit(1);
 
       const responseTime = Date.now() - startTime;
 
@@ -165,8 +176,10 @@ export class SecurityMonitor {
         return 'unhealthy';
       }
 
-      // Consider degraded if response time is too slow
+      // Consider response time for health assessment
       if (responseTime > 5000) {
+        return 'unhealthy';
+      } else if (responseTime > 2000) {
         return 'degraded';
       }
 
@@ -182,12 +195,23 @@ export class SecurityMonitor {
    */
   private async checkAuthenticationHealth(): Promise<'healthy' | 'degraded' | 'unhealthy'> {
     try {
-      // Test authentication service by checking if we can access auth tables
-      const { data, error } = await supabase.auth.getSession();
+      const startTime = Date.now();
+      
+      // Test authentication service with a simple operation
+      const { data: { session }, error } = await supabase.auth.getSession();
+
+      const responseTime = Date.now() - startTime;
 
       if (error) {
         console.error('Authentication health check failed:', error);
         return 'unhealthy';
+      }
+
+      // Consider response time for health assessment
+      if (responseTime > 3000) {
+        return 'unhealthy';
+      } else if (responseTime > 1000) {
+        return 'degraded';
       }
 
       return 'healthy';
@@ -202,19 +226,45 @@ export class SecurityMonitor {
    */
   private async checkAPIHealth(): Promise<'healthy' | 'degraded' | 'unhealthy'> {
     try {
-      // Test API endpoints by making a simple request
-      const { data, error } = await supabase
-        .from('words')
-        .select('count')
-        .limit(1);
+      const startTime = Date.now();
+      
+      // Test API endpoints (simplified - would test actual endpoints)
+      const testEndpoints = [
+        '/api/health',
+        '/api/status'
+      ];
 
-      if (error) {
-        console.error('API health check failed:', error);
+      let healthyEndpoints = 0;
+      let totalResponseTime = 0;
+
+      for (const endpoint of testEndpoints) {
+        try {
+          const response = await fetch(endpoint, { 
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          
+          if (response.ok) {
+            healthyEndpoints++;
+          }
+          
+          totalResponseTime += Date.now() - startTime;
+        } catch (error) {
+          console.error(`API endpoint ${endpoint} health check failed:`, error);
+        }
+      }
+
+      const averageResponseTime = totalResponseTime / testEndpoints.length;
+      const healthPercentage = (healthyEndpoints / testEndpoints.length) * 100;
+
+      if (healthPercentage < 50) {
         return 'unhealthy';
+      } else if (healthPercentage < 100 || averageResponseTime > 2000) {
+        return 'degraded';
       }
 
       return 'healthy';
-      } catch (error) {
+    } catch (error) {
       console.error('API health check error:', error);
       return 'unhealthy';
     }
@@ -287,6 +337,123 @@ export class SecurityMonitor {
       console.error('Error getting security metrics:', error);
       throw error;
     }
+  }
+
+  /**
+   * Get comprehensive system metrics
+   */
+  async getSystemMetrics(): Promise<SystemMetrics> {
+    try {
+      const [security, health, performance] = await Promise.all([
+        this.getSecurityMetrics(),
+        this.checkSystemHealth(),
+        this.getPerformanceMetrics()
+      ]);
+
+      return {
+        security,
+        health,
+        performance
+      };
+    } catch (error) {
+      console.error('Error getting system metrics:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check system health
+   */
+  async checkSystemHealth(): Promise<SystemHealth> {
+    try {
+      const dbHealth = await this.checkDatabaseHealth();
+      const authHealth = await this.checkAuthenticationHealth();
+      const apiHealth = await this.checkAPIHealth();
+      const overallHealth = this.determineOverallHealth(dbHealth, authHealth, apiHealth);
+
+      return {
+        database: dbHealth,
+        authentication: authHealth,
+        api: apiHealth,
+        overall: overallHealth,
+        lastChecked: new Date().toISOString(),
+        uptime: 99.9, // This would be calculated from actual uptime data
+        lastOutage: null // This would be tracked from actual outage data
+      };
+    } catch (error) {
+      console.error('Error checking system health:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get performance metrics
+   */
+  async getPerformanceMetrics(): Promise<PerformanceMetrics> {
+    try {
+      const startTime = Date.now();
+      
+      // Simulate performance measurements
+      const responseTimes: number[] = [];
+      
+      // Measure database query performance
+      const dbStart = Date.now();
+      await supabase.from('profiles').select('id').limit(1);
+      responseTimes.push(Date.now() - dbStart);
+      
+      // Measure authentication performance
+      const authStart = Date.now();
+      await supabase.auth.getSession();
+      responseTimes.push(Date.now() - authStart);
+      
+      // Calculate metrics
+      const averageResponseTime = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+      const peakResponseTime = Math.max(...responseTimes);
+      const errorRate = 0.1; // This would be calculated from actual error data
+      const throughput = 1000; // This would be calculated from actual throughput data
+      
+      // Calculate percentiles
+      const sortedTimes = [...responseTimes].sort((a, b) => a - b);
+      const p50 = sortedTimes[Math.floor(sortedTimes.length * 0.5)] || 0;
+      const p95 = sortedTimes[Math.floor(sortedTimes.length * 0.95)] || 0;
+      const p99 = sortedTimes[Math.floor(sortedTimes.length * 0.99)] || 0;
+      
+      const metrics: PerformanceMetrics = {
+        averageResponseTime,
+        peakResponseTime,
+        errorRate,
+        throughput,
+        latency: {
+          p50,
+          p95,
+          p99
+        },
+        resourceUsage: {
+          cpu: 15, // This would be actual CPU usage
+          memory: 45, // This would be actual memory usage
+          database: 25 // This would be actual database usage
+        },
+        lastUpdated: new Date().toISOString()
+      };
+
+      // Store in history
+      this.performanceHistory.push(metrics);
+      if (this.performanceHistory.length > this.MAX_HISTORY_SIZE) {
+        this.performanceHistory.shift();
+      }
+
+      return metrics;
+    } catch (error) {
+      console.error('Error getting performance metrics:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get performance history
+   */
+  getPerformanceHistory(): PerformanceMetrics[] {
+    return [...this.performanceHistory];
   }
 
   /**

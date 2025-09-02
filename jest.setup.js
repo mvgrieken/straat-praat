@@ -1,59 +1,24 @@
-// Mock React Native Gesture Handler
-jest.mock('react-native-gesture-handler/jestSetup', () => {});
+// Jest setup file
+import 'react-native-gesture-handler/jestSetup';
 
 // Mock Expo modules
-jest.mock('expo-av', () => ({
-  Audio: {
-    Sound: jest.fn().mockImplementation(() => ({
-      loadAsync: jest.fn(),
-      playAsync: jest.fn(),
-      stopAsync: jest.fn(),
-      unloadAsync: jest.fn(),
-    })),
+jest.mock('expo', () => ({
+  ...jest.requireActual('expo'),
+  Linking: {
+    makeUrl: jest.fn(),
+    openURL: jest.fn(),
   },
-}));
-
-jest.mock('expo-notifications', () => ({
-  scheduleNotificationAsync: jest.fn(),
-  cancelScheduledNotificationAsync: jest.fn(),
-  getPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
-  requestPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
-}));
-
-jest.mock('expo-secure-store', () => ({
-  getItemAsync: jest.fn(),
-  setItemAsync: jest.fn(),
-  deleteItemAsync: jest.fn(),
-}));
-
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
-);
-
-// Mock Supabase
-jest.mock('@/services/supabase', () => ({
-  supabase: {
-    from: jest.fn(() => ({
-      select: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          single: jest.fn(() => Promise.resolve({ data: null, error: null })),
-          limit: jest.fn(() => Promise.resolve({ data: [], error: null })),
-        })),
-        insert: jest.fn(() => Promise.resolve({ data: null, error: null })),
-        update: jest.fn(() => Promise.resolve({ data: null, error: null })),
-        delete: jest.fn(() => Promise.resolve({ data: null, error: null })),
-        or: jest.fn(() => ({
-          limit: jest.fn(() => Promise.resolve({ data: [], error: null })),
-        })),
-      })),
-    })),
-    auth: {
-      getUser: jest.fn(() => Promise.resolve({ data: { user: null }, error: null })),
-      signInWithPassword: jest.fn(() => Promise.resolve({ data: { user: null }, error: null })),
-      signUp: jest.fn(() => Promise.resolve({ data: { user: null }, error: null })),
-      signOut: jest.fn(() => Promise.resolve({ error: null })),
-    },
-    rpc: jest.fn(() => Promise.resolve({ data: [], error: null })),
+  Notifications: {
+    getPermissionsAsync: jest.fn(),
+    requestPermissionsAsync: jest.fn(),
+    getExpoPushTokenAsync: jest.fn(),
+    addNotificationReceivedListener: jest.fn(),
+    addNotificationResponseReceivedListener: jest.fn(),
+  },
+  SecureStore: {
+    getItemAsync: jest.fn(),
+    setItemAsync: jest.fn(),
+    deleteItemAsync: jest.fn(),
   },
 }));
 
@@ -62,69 +27,52 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
+    setOptions: jest.fn(),
   }),
   useRoute: () => ({
     params: {},
   }),
+  useFocusEffect: jest.fn(),
 }));
 
-// Mock Expo Router
-jest.mock('expo-router', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    back: jest.fn(),
-  }),
-  useLocalSearchParams: () => ({}),
-  router: {
-    push: jest.fn(),
-    replace: jest.fn(),
-    back: jest.fn(),
-  },
-}));
-
-// Mock React Query
-jest.mock('@tanstack/react-query', () => ({
-  useQuery: jest.fn(() => ({
-    data: null,
-    isLoading: false,
-    error: null,
-    refetch: jest.fn(),
-  })),
-  useMutation: jest.fn(() => ({
-    mutate: jest.fn(),
-    mutateAsync: jest.fn(),
-    isLoading: false,
-    error: null,
-  })),
-  useQueryClient: jest.fn(() => ({
-    invalidateQueries: jest.fn(),
-    setQueryData: jest.fn(),
-  })),
-}));
-
-// Mock React Native components
-jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
-  return {
-    ...RN,
-    Alert: {
-      alert: jest.fn(),
+// Mock Supabase
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(() => ({
+    auth: {
+      getUser: jest.fn(),
+      signIn: jest.fn(),
+      signUp: jest.fn(),
+      signOut: jest.fn(),
+      onAuthStateChange: jest.fn(),
     },
-    Platform: {
-      ...RN.Platform,
-      OS: 'ios',
-    },
-  };
+    from: jest.fn(() => ({
+      select: jest.fn().mockReturnThis(),
+      insert: jest.fn().mockReturnThis(),
+      update: jest.fn().mockReturnThis(),
+      delete: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      single: jest.fn(),
+      order: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      range: jest.fn().mockReturnThis(),
+    })),
+  })),
+}));
+
+// Mock AsyncStorage
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
+);
+
+// Mock react-native-reanimated
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = require('react-native-reanimated/mock');
+  Reanimated.default.call = () => {};
+  return Reanimated;
 });
 
-// Mock LinearGradient
-jest.mock('expo-linear-gradient', () => 'LinearGradient');
-
-// Mock Ionicons
-jest.mock('@expo/vector-icons', () => ({
-  Ionicons: 'Ionicons',
-}));
+// Mock react-native-svg
+jest.mock('react-native-svg', () => 'Svg');
 
 // Global test utilities
 global.console = {
@@ -134,27 +82,128 @@ global.console = {
   // debug: jest.fn(),
   // info: jest.fn(),
   // warn: jest.fn(),
-  error: jest.fn(),
+  // error: jest.fn(),
 };
 
-// Mock fetch
-global.fetch = jest.fn(() =>
-  Promise.resolve({
-    json: () => Promise.resolve({}),
-    ok: true,
-  })
-);
+// Mock fetch globally
+global.fetch = jest.fn();
 
-// Mock AsyncStorage
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
-);
+// Mock Alert
+global.Alert = {
+  alert: jest.fn(),
+};
 
-// Setup test environment
+// Mock Dimensions
+jest.mock('react-native/Libraries/Utilities/Dimensions', () => ({
+  get: jest.fn().mockReturnValue({
+    width: 375,
+    height: 812,
+    scale: 3,
+    fontScale: 1,
+  }),
+}));
+
+// Mock Platform
+jest.mock('react-native/Libraries/Utilities/Platform', () => ({
+  OS: 'ios',
+  select: jest.fn((obj) => obj.ios),
+}));
+
+// Mock Permissions
+jest.mock('expo-permissions', () => ({
+  askAsync: jest.fn(),
+  getAsync: jest.fn(),
+}));
+
+// Mock ImagePicker
+jest.mock('expo-image-picker', () => ({
+  launchImageLibraryAsync: jest.fn(),
+  launchCameraAsync: jest.fn(),
+  MediaTypeOptions: {
+    All: 'All',
+    Videos: 'Videos',
+    Images: 'Images',
+  },
+  ImagePickerResult: {
+    cancelled: false,
+    uri: 'test-uri',
+    width: 100,
+    height: 100,
+  },
+}));
+
+// Mock FileSystem
+jest.mock('expo-file-system', () => ({
+  documentDirectory: 'file://test-dir/',
+  cacheDirectory: 'file://test-cache/',
+  readAsStringAsync: jest.fn(),
+  writeAsStringAsync: jest.fn(),
+  deleteAsync: jest.fn(),
+  makeDirectoryAsync: jest.fn(),
+  readDirectoryAsync: jest.fn(),
+}));
+
+// Mock Crypto
+jest.mock('expo-crypto', () => ({
+  digestStringAsync: jest.fn(),
+  randomUUID: jest.fn(() => 'test-uuid'),
+}));
+
+// Mock Localization
+jest.mock('expo-localization', () => ({
+  locale: 'nl-NL',
+  locales: ['nl-NL', 'en-US'],
+  isRTL: false,
+  timezone: 'Europe/Amsterdam',
+}));
+
+// Mock Device
+jest.mock('expo-device', () => ({
+  isDevice: true,
+  brand: 'Apple',
+  manufacturer: 'Apple',
+  modelName: 'iPhone',
+  modelId: 'iPhone14,2',
+  designName: 'iPhone 13 Pro',
+  productName: 'iPhone 13 Pro',
+  deviceYearClass: 2021,
+  totalMemory: 6,
+  supportedCpuArchitectures: ['arm64'],
+  osName: 'iOS',
+  osVersion: '15.0',
+  osBuildId: '19A346',
+  osInternalBuildId: '19A346',
+  deviceName: 'iPhone 13 Pro',
+}));
+
+// Mock Constants
+jest.mock('expo-constants', () => ({
+  default: {
+    expoConfig: {
+      extra: {
+        supabaseUrl: 'https://test.supabase.co',
+        supabaseAnonKey: 'test-key',
+      },
+    },
+    manifest: {
+      extra: {
+        supabaseUrl: 'https://test.supabase.co',
+        supabaseAnonKey: 'test-key',
+      },
+    },
+  },
+}));
+
+// Setup before each test
 beforeEach(() => {
   jest.clearAllMocks();
+  fetch.mockClear();
 });
 
+// Setup after each test
 afterEach(() => {
-  jest.resetAllMocks();
+  jest.clearAllTimers();
 });
+
+// Global test timeout
+jest.setTimeout(10000);

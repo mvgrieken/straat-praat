@@ -7,11 +7,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  Modal,
 } from 'react-native';
 import { AuthAnalyticsService } from '@/services/authAnalyticsService';
 import { SecurityMonitor } from '@/services/securityMonitor';
 import { useAuth } from '@/hooks/useAuth';
 import SecurityReportsManager from './SecurityReportsManager';
+import SystemHealthMonitor from './SystemHealthMonitor';
 
 interface SecurityMetrics {
   totalLogins: number;
@@ -39,6 +41,7 @@ export default function SecurityAnalyticsDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<'24h' | '7d' | '30d'>('7d');
   const [showReportsManager, setShowReportsManager] = useState(false);
+  const [showSystemHealth, setShowSystemHealth] = useState(false);
 
   useEffect(() => {
     loadSecurityData();
@@ -172,6 +175,27 @@ export default function SecurityAnalyticsDashboard() {
         </View>
       )}
 
+      {/* Quick Actions */}
+      <View style={styles.quickActionsSection}>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <View style={styles.quickActionsGrid}>
+          <TouchableOpacity
+            style={styles.quickActionButton}
+            onPress={() => setShowSystemHealth(true)}
+          >
+            <Text style={styles.quickActionIcon}>🏥</Text>
+            <Text style={styles.quickActionText}>System Health</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.quickActionButton}
+            onPress={() => setShowReportsManager(true)}
+          >
+            <Text style={styles.quickActionIcon}>📊</Text>
+            <Text style={styles.quickActionText}>Reports</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* Metrics Grid */}
       {metrics && (
         <View style={styles.metricsGrid}>
@@ -229,6 +253,18 @@ export default function SecurityAnalyticsDashboard() {
           onClose={() => setShowReportsManager(false)}
         />
       )}
+
+      {/* System Health Monitor Modal */}
+      <Modal
+        visible={showSystemHealth}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <SystemHealthMonitor
+          visible={showSystemHealth}
+          onClose={() => setShowSystemHealth(false)}
+        />
+      </Modal>
     </ScrollView>
   );
 }
@@ -421,5 +457,33 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#374151',
     lineHeight: 20,
+  },
+  quickActionsSection: {
+    padding: 20,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  quickActionButton: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  quickActionIcon: {
+    fontSize: 24,
+    marginBottom: 8,
+  },
+  quickActionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
   },
 });

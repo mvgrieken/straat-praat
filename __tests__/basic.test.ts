@@ -1,5 +1,5 @@
-describe('Basic Test Suite', () => {
-  it('should pass a simple test', () => {
+describe('Basic Jest Test', () => {
+  it('should work correctly', () => {
     expect(1 + 1).toBe(2);
   });
 
