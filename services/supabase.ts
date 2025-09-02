@@ -1,7 +1,9 @@
+import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '@/types/supabase';
+import { Platform } from 'react-native';
 
 import { validateEnvironment } from '@/src/env';
+import type { Database } from '@/types/supabase';
 
 // Import platform-specific secure storage adapter
 import StorageAdapter from './storage/secureStoreAdapter';

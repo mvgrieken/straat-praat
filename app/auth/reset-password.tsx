@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, StyleSheet, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { router } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '@/hooks/useAuth';
 import { TextField } from '@/components/forms/TextField';
-import { z } from 'zod';
+import { resetPasswordSchema, ResetPasswordFormData } from '@/src/lib/validations/auth';
 
 export default function ResetPasswordScreen() {
   const [isLoading, setIsLoading] = useState(false);

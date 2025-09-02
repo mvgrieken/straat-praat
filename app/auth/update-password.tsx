@@ -1,13 +1,19 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import { router } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, Alert, StyleSheet, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Ionicons } from '@expo/vector-icons';
 
 import { supabase } from '@/services/supabase';
-import { TextField } from '@/components/forms/TextField';
-import { z } from 'zod';
+import TextField from '@/components/forms/TextField';
+import { updatePasswordSchema, UpdatePasswordFormData } from '@/src/lib/validations/auth';
+
+// Add the missing updatePassword function
+const updatePassword = async (userId: string, newPassword: string) => {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  return { success: !error, error: error?.message };
+};
 
 export default function UpdatePasswordScreen() {
   const [isLoading, setIsLoading] = useState(false);

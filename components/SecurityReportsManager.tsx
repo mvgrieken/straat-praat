@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '@/hooks/useAuth';
-import { SecurityReportingService } from '@/services/securityReportingService';
+import { SecurityReportingService, SecurityReport } from '@/services/securityReportingService';
 import { COLORS } from '@/constants';
 
 interface SecurityReportsManagerProps {

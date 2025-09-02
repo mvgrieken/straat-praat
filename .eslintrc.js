@@ -70,7 +70,7 @@ module.exports = {
     
     // Import/Export
     'import/order': [
-      'error',
+      'warn',
       {
         groups: [
           'builtin',

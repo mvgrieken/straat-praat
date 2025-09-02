@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { router } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,8 +8,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { TextField } from '@/components/forms/TextField';
 import { CheckboxField } from '@/components/forms/CheckboxField';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
-import { z } from 'zod';
-
 import { signupSchema, SignupFormData } from '@/src/lib/validations/auth';
 
 export default function SignupScreen() {

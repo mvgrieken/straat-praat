@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Control, Controller, FieldPath, FieldValues } from 'react-hook-form';
 
 import { COLORS } from '@/constants';
-import { Control, Controller, FieldPath, FieldValues } from 'react-hook-form';
 
 interface CheckboxFieldProps<
   TFieldValues extends FieldValues = FieldValues,
