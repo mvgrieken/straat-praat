@@ -10,9 +10,10 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
-import { Word, ApiResponse } from '@/types';
-import { WordService } from '@/services/wordService';
+
 import { supabase } from '@/services/supabase';
+import { WordService } from '@/services/wordService';
+import { Word, ApiResponse } from '@/types';
 
 interface WordFormData {
   slang_word: string;

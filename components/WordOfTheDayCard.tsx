@@ -158,7 +158,7 @@ export function WordOfTheDayCard({ onWordPress }: WordOfTheDayCardProps) {
               className="text-white/80 italic"
               style={{ fontSize: settings.fontSize === 'large' ? 16 : 14 }}
             >
-              "{wordOfDay.example_sentence}"
+              &ldquo;{wordOfDay.example_sentence}&rdquo;
             </Text>
           </View>
         )}

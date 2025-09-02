@@ -260,11 +260,13 @@ export default function QuizScreen() {
               </View>
               
               <View style={{ flex: 1 }}>
-                <View style={{ 
+                <View
+                  style={{ 
                   flexDirection: 'row', 
                   alignItems: 'center',
                   marginBottom: 4,
-                }}>
+                }}
+                >
                   <Text 
                     style={{ 
                       color: isDark ? COLORS.white : COLORS.gray[900],

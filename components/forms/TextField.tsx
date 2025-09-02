@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
-import { View, Text, TextInput, TextInputProps, StyleSheet } from 'react-native';
 import { Control, Controller, FieldPath, FieldValues } from 'react-hook-form';
+import { View, Text, TextInput, TextInputProps, StyleSheet } from 'react-native';
 
 interface TextFieldProps<
   TFieldValues extends FieldValues = FieldValues,

@@ -2,18 +2,18 @@ import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 
-import type { Database } from '../types/supabase';
 import { validateEnvironment } from '../src/env';
+import type { Database } from '../types/supabase';
+
+// Import platform-specific secure storage adapter
+import StorageAdapter from './storage/secureStoreAdapter';
 
 // Validate and get environment variables
 const { supabaseUrl, supabaseAnonKey } = validateEnvironment();
 console.log('Supabase config:', { 
-  supabaseUrl: supabaseUrl.substring(0, 20) + '...', 
-  supabaseAnonKey: supabaseAnonKey.substring(0, 20) + '...' 
+  supabaseUrl: `${supabaseUrl.substring(0, 20)  }...`, 
+  supabaseAnonKey: `${supabaseAnonKey.substring(0, 20)  }...` 
 });
-
-// Import platform-specific secure storage adapter
-import StorageAdapter from './storage/secureStoreAdapter';
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {

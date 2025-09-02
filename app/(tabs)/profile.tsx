@@ -322,13 +322,15 @@ export default function ProfileScreen() {
           
           <View style={{ paddingHorizontal: 16 }}>
             {/* Theme Setting */}
-            <View style={{ 
+            <View
+              style={{ 
               flexDirection: 'row', 
               alignItems: 'center',
               paddingVertical: 12,
               borderBottomWidth: 1,
               borderBottomColor: isDark ? COLORS.gray[700] : COLORS.gray[200],
-            }}>
+            }}
+            >
               <Ionicons 
                 name="moon-outline" 
                 size={20} 
@@ -407,11 +409,13 @@ export default function ProfileScreen() {
             </TouchableOpacity>
             
             {/* Sound */}
-            <View style={{ 
+            <View
+              style={{ 
               flexDirection: 'row', 
               alignItems: 'center',
               paddingVertical: 12,
-            }}>
+            }}
+            >
               <Ionicons 
                 name="volume-high-outline" 
                 size={20} 
@@ -461,13 +465,15 @@ export default function ProfileScreen() {
           </Text>
           
           <View style={{ paddingHorizontal: 16 }}>
-            <View style={{ 
+            <View
+              style={{ 
               flexDirection: 'row', 
               alignItems: 'center',
               paddingVertical: 12,
               borderBottomWidth: 1,
               borderBottomColor: isDark ? COLORS.gray[700] : COLORS.gray[200],
-            }}>
+            }}
+            >
               <Ionicons 
                 name="book-outline" 
                 size={20} 
@@ -493,11 +499,13 @@ export default function ProfileScreen() {
               />
             </View>
             
-            <View style={{ 
+            <View
+              style={{ 
               flexDirection: 'row', 
               alignItems: 'center',
               paddingVertical: 12,
-            }}>
+            }}
+            >
               <Ionicons 
                 name="trophy-outline" 
                 size={20} 

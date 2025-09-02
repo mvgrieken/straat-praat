@@ -1,4 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   View,
   Text,
@@ -9,14 +13,10 @@ import {
   Platform,
   SafeAreaView,
 } from 'react-native';
-import { Link, router } from 'expo-router';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Ionicons } from '@expo/vector-icons';
 
+import TextField from '@/components/forms/TextField';
 import { useAuth } from '@/hooks/useAuth';
 import { resetPasswordSchema, ResetPasswordFormData } from '@/src/lib/validations/auth';
-import TextField from '@/components/forms/TextField';
 
 export default function ResetPasswordScreen() {
   const [isLoading, setIsLoading] = useState(false);

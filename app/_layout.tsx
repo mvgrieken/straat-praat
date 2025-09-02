@@ -1,17 +1,18 @@
+import React, { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useColorScheme } from 'react-native';
 import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { EnvGate } from '@/components/EnvGate';
 import { AuthProvider } from '@/hooks/useAuth';
 import { useNotifications } from '@/hooks/useNotifications';
 import { SettingsProvider } from '@/hooks/useSettings';
-import { EnvGate } from '@/components/EnvGate';
 
 import '../global.css';
 

@@ -3,8 +3,10 @@ module.exports = {
     'expo',
     'plugin:@typescript-eslint/recommended',
     'plugin:react-hooks/recommended',
+    'plugin:react/recommended',
+    'plugin:jsx-a11y/recommended',
   ],
-  plugins: ['@typescript-eslint', 'react-hooks'],
+  plugins: ['@typescript-eslint', 'react-hooks', 'react', 'jsx-a11y'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaFeatures: {
@@ -27,6 +29,26 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-non-null-assertion': 'warn',
+    
+    // React & JSX specific rules
+    'react/jsx-uses-react': 'error',
+    'react/jsx-uses-vars': 'error',
+    'react/jsx-no-undef': 'error',
+    'react/jsx-no-duplicate-props': 'error',
+    'react/jsx-key': 'error',
+    'react/jsx-no-bind': 'warn',
+    'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
+    'react/jsx-fragments': 'error',
+    'react/jsx-no-useless-fragment': 'error',
+    'react/jsx-wrap-multilines': 'error',
+    'react/jsx-closing-bracket-location': 'error',
+    'react/jsx-closing-tag-location': 'error',
+    'react/jsx-indent': ['error', 2],
+    'react/jsx-indent-props': ['error', 2],
+    'react/jsx-max-props-per-line': ['error', { maximum: 3, when: 'multiline' }],
+    'react/jsx-first-prop-new-line': ['error', 'multiline'],
+    'react/jsx-equals-spacing': ['error', 'never'],
+    'react/jsx-tag-spacing': 'error',
     
     // React Native specific rules disabled for now
     // 'react-native/no-unused-styles': 'error',
@@ -69,6 +91,8 @@ module.exports = {
   env: {
     es2021: true,
     node: true,
+    browser: true,
+    es6: true,
   },
   settings: {
     react: {

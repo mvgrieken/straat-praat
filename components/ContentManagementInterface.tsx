@@ -9,9 +9,10 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
+
 import { useAuth } from '@/hooks/useAuth';
-import { CommunityModerationService, CommunityContribution } from '@/services/communityModerationService';
 import { AITranslationService } from '@/services/aiTranslationService';
+import { CommunityModerationService, CommunityContribution } from '@/services/communityModerationService';
 
 interface ContentManagementInterfaceProps {
   onClose: () => void;
@@ -224,7 +225,7 @@ export const ContentManagementInterface: React.FC<ContentManagementInterfaceProp
       <View style={styles.aiInfoCard}>
         <Text style={styles.aiInfoTitle}>AI Vertaalservice</Text>
         <Text style={styles.aiInfoText}>
-          Deze service gebruikt OpenAI's GPT model om zinnen te vertalen tussen Straat-Praat en formeel Nederlands.
+          Deze service gebruikt OpenAI&apos;s GPT model om zinnen te vertalen tussen Straat-Praat en formeel Nederlands.
         </Text>
         <Text style={styles.aiInfoText}>
           Voor losse woorden wordt de lokale database gebruikt, voor zinnen wordt de AI service aangeroepen.

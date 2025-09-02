@@ -1,4 +1,7 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   View,
   Text,
@@ -10,13 +13,10 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import { Link, router } from 'expo-router';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 
+import TextField from '@/components/forms/TextField';
 import { useAuth } from '@/hooks/useAuth';
 import { loginSchema, LoginFormData } from '@/src/lib/validations/auth';
-import TextField from '@/components/forms/TextField';
 
 export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);

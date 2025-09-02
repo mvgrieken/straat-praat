@@ -55,7 +55,7 @@ export default function TranslateScreen() {
                 fontSize: settings.fontSize === 'large' ? 18 : 16,
               }}
             >
-              Zoek woorden of vertaal zinnen
+              Typ een zin in &ldquo;straat-praat&rdquo; of gewone taal en krijg de vertaling
             </Text>
 
             {/* Mode Toggle */}
@@ -227,7 +227,8 @@ export default function TranslateScreen() {
 
                 {/* Recent Searches */}
                 {!selectedWord && (
-                  <RecentSearches onSelect={async (word) => {
+                  <RecentSearches
+                    onSelect={async (word) => {
                     // Find the word in database when selected from recent
                     try {
                       const results = await WordService.searchWords(word, 1);
@@ -237,7 +238,8 @@ export default function TranslateScreen() {
                     } catch (error) {
                       console.error('Error searching word:', error);
                     }
-                  }} />
+                  }}
+                  />
                 )}
               </>
             ) : (

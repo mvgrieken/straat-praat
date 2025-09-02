@@ -121,10 +121,12 @@ export default function HomeScreen() {
 
         {/* Word of the Day */}
         <View className="px-6 mb-6">
-          <WordOfTheDayCard onWordPress={(wordId) => {
+          <WordOfTheDayCard
+            onWordPress={(wordId) => {
             // Navigate to word detail or show in modal
             router.push(`/word/${wordId}` as any);
-          }} />
+          }}
+          />
         </View>
 
         {/* Streak Card */}

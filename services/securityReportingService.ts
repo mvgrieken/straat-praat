@@ -1,7 +1,7 @@
-import { supabase } from './supabase';
+import { AlertingService } from './alertingService';
 import { AuthAnalyticsService } from './authAnalyticsService';
 import { SecurityMonitor } from './securityMonitor';
-import { AlertingService } from './alertingService';
+import { supabase } from './supabase';
 
 export interface SecurityReport {
   id: string;
@@ -36,19 +36,19 @@ export interface UserActivityReport {
     used: number;
     rate: number;
   };
-  topUserActivities: Array<{
+  topUserActivities: {
     userId: string;
     email: string;
     loginCount: number;
     lastLogin: Date;
-  }>;
-  suspiciousActivities: Array<{
+  }[];
+  suspiciousActivities: {
     userId: string;
     email: string;
     event: string;
     timestamp: Date;
     risk: 'low' | 'medium' | 'high';
-  }>;
+  }[];
 }
 
 export interface SecurityIncidentReport {
@@ -56,24 +56,24 @@ export interface SecurityIncidentReport {
   criticalIncidents: number;
   resolvedIncidents: number;
   averageResolutionTime: number;
-  incidentsByType: Array<{
+  incidentsByType: {
     type: string;
     count: number;
     percentage: number;
-  }>;
-  recentIncidents: Array<{
+  }[];
+  recentIncidents: {
     id: string;
     type: string;
     severity: 'low' | 'medium' | 'high' | 'critical';
     description: string;
     timestamp: Date;
     status: 'active' | 'acknowledged' | 'resolved';
-  }>;
-  topThreats: Array<{
+  }[];
+  topThreats: {
     threat: string;
     occurrences: number;
     impact: 'low' | 'medium' | 'high';
-  }>;
+  }[];
 }
 
 export interface ComplianceReport {
@@ -103,24 +103,24 @@ export interface ThreatIntelligenceReport {
     activeThreats: number;
     mitigatedThreats: number;
   };
-  threatCategories: Array<{
+  threatCategories: {
     category: string;
     count: number;
     riskLevel: 'low' | 'medium' | 'high' | 'critical';
-  }>;
-  emergingThreats: Array<{
+  }[];
+  emergingThreats: {
     threat: string;
     description: string;
     firstSeen: Date;
     frequency: number;
     impact: 'low' | 'medium' | 'high';
-  }>;
-  iocIndicators: Array<{
+  }[];
+  iocIndicators: {
     type: 'ip' | 'domain' | 'email' | 'hash';
     value: string;
     threat: string;
     confidence: number;
-  }>;
+  }[];
 }
 
 export interface SystemHealthReport {
@@ -690,13 +690,13 @@ export class SecurityReportingService {
     return levels[Math.max(currentIndex, newIndex)] as 'low' | 'medium' | 'high' | 'critical';
   }
 
-  private static identifyEmergingThreats(events: any[]): Array<{
+  private static identifyEmergingThreats(events: any[]): {
     threat: string;
     description: string;
     firstSeen: Date;
     frequency: number;
     impact: 'low' | 'medium' | 'high';
-  }> {
+  }[] {
     const threatFrequency = new Map<string, { count: number; firstSeen: Date }>();
     
     events.forEach(event => {
@@ -730,18 +730,18 @@ export class SecurityReportingService {
       .slice(0, 10);
   }
 
-  private static generateIOCIndicators(events: any[]): Array<{
+  private static generateIOCIndicators(events: any[]): {
     type: 'ip' | 'domain' | 'email' | 'hash';
     value: string;
     threat: string;
     confidence: number;
-  }> {
-    const iocs: Array<{
+  }[] {
+    const iocs: {
       type: 'ip' | 'domain' | 'email' | 'hash';
       value: string;
       threat: string;
       confidence: number;
-    }> = [];
+    }[] = [];
 
     events.forEach(event => {
       if (event.ip_address && event.risk_level === 'high') {

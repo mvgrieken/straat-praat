@@ -1,7 +1,9 @@
-import { supabase } from './supabase';
 import { validateEnvironment } from '@/src/env';
-import { WordService } from './wordService';
 import { ApiResponse } from '@/types';
+
+import { supabase } from './supabase';
+import { WordService } from './wordService';
+
 
 export interface TranslationRequest {
   text: string;
@@ -260,7 +262,7 @@ export class TranslationService {
     databaseTranslations: number;
     fallbackTranslations: number;
     averageConfidence: number;
-    mostTranslatedWords: Array<{ word: string; count: number }>;
+    mostTranslatedWords: { word: string; count: number }[];
   }>> {
     try {
       const { data, error } = await supabase

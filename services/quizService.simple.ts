@@ -71,7 +71,7 @@ export class QuizService {
 
         questions.push({
           id: word.id,
-          word: word,
+          word,
           questionText: `Wat betekent "${word.word}"?`,
           correctAnswer: word.meaning,
           options,

@@ -113,7 +113,7 @@ export class QuizService {
     word: Word,
     allWords: Word[]
   ): Promise<QuizQuestion> {
-    const questionTypes: Array<'multiple_choice' | 'translation' | 'example'> = [
+    const questionTypes: ('multiple_choice' | 'translation' | 'example')[] = [
       'multiple_choice',
       'translation',
       'example'

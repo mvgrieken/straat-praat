@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Modal } from 'react-native';
+
 import { SecurityReportingService, SecurityReport } from '@/services/securityReportingService';
 
 interface SecurityReportsManagerProps {
@@ -172,10 +173,12 @@ export default function SecurityReportsManager({ visible, onClose }: SecurityRep
                     </Text>
                   </View>
                   <View style={styles.reportStats}>
-                    <View style={[
+                    <View
+                      style={[
                       styles.severityIndicator,
                       { backgroundColor: getSeverityColor(report.summary.criticalIssues) }
-                    ]} />
+                    ]}
+                    />
                     <Text style={styles.reportStatsText}>
                       {report.summary.criticalIssues} critical
                     </Text>

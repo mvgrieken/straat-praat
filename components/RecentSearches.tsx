@@ -101,12 +101,14 @@ export function RecentSearches({ onSelect }: RecentSearchesProps) {
         borderColor: isDark ? COLORS.gray[700] : COLORS.gray[200],
       }}
     >
-      <View style={{ 
+      <View
+        style={{ 
         flexDirection: 'row', 
         justifyContent: 'space-between', 
         alignItems: 'center',
         marginBottom: 12,
-      }}>
+      }}
+      >
         <Text 
           style={{ 
             color: isDark ? COLORS.gray[300] : COLORS.gray[600],

@@ -1,4 +1,4 @@
-﻿import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import {
@@ -191,9 +191,11 @@ export function AITranslator({ direction, onDirectionChange }: AITranslatorProps
 
         {/* Result Section */}
         {result && (
-          <View className={`border rounded-lg p-4 mb-4 ${
+          <View
+            className={`border rounded-lg p-4 mb-4 ${
             isDark ? 'border-gray-600 bg-gray-800' : 'border-gray-300 bg-white'
-          }`}>
+          }`}
+          >
             {/* Translation Result */}
             <View className="mb-3">
               <Text className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -216,7 +218,7 @@ export function AITranslator({ direction, onDirectionChange }: AITranslatorProps
                   {getSourceText(result.source)}
                 </Text>
                 {result.model && (
-                  <Text className={`text-xs ml-2 px-2 py-1 rounded bg-blue-100 text-blue-800`}>
+                  <Text className="text-xs ml-2 px-2 py-1 rounded bg-blue-100 text-blue-800">
                     {result.model}
                   </Text>
                 )}

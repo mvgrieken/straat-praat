@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 
 import { COLORS } from '@/constants';
-import { useSettings } from '@/hooks/useSettings';
 import { useAuth } from '@/hooks/useAuth';
+import { useSettings } from '@/hooks/useSettings';
 import { WordService, WordSearchResult } from '@/services/wordService.simple';
 
 interface SearchBarProps {
@@ -200,7 +200,7 @@ export function SearchBar({
                 className="text-center"
                 style={{ color: isDark ? COLORS.gray[400] : COLORS.gray[600] }}
               >
-                Geen resultaten voor "{debouncedQuery}"
+                Geen resultaten voor &ldquo;{debouncedQuery}&rdquo;
               </Text>
             </View>
           ) : (

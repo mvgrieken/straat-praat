@@ -1,6 +1,6 @@
-import { supabase } from './supabase';
 import { AuthAnalyticsService } from './authAnalyticsService';
 import { SecurityEventLogger } from './securityEventLogger';
+import { supabase } from './supabase';
 
 export interface MFASetupResult {
   success: boolean;

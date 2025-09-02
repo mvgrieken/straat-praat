@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -9,9 +10,9 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { Image } from 'expo-image';
-import { MFAService, MFASetupResult } from '@/services/mfaService';
+
 import { useAuth } from '@/hooks/useAuth';
+import { MFAService, MFASetupResult } from '@/services/mfaService';
 
 interface MFASetupModalProps {
   visible: boolean;

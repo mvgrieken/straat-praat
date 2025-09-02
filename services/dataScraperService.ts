@@ -177,7 +177,7 @@ export class DataScraperService {
         
         for (const word of extractedWords) {
           words.push({
-            word: word,
+            word,
             source: `reddit/r/${subreddit}`,
             sourceUrl: `https://reddit.com${postData.permalink}`,
             confidence: this.calculateWordConfidence(word, text),
@@ -267,7 +267,7 @@ export class DataScraperService {
       
       for (const word of extractedWords) {
         words.push({
-          word: word,
+          word,
           source: source.name,
           sourceUrl: source.url,
           confidence: this.calculateWordConfidence(word, textContent),

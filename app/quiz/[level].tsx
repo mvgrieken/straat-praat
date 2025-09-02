@@ -15,8 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '@/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
-import { QuizService, QuizQuestion } from '@/services/quizService';
 import { GamificationService } from '@/services/gamificationService';
+import { QuizService, QuizQuestion } from '@/services/quizService';
 
 export default function QuizPlayScreen() {
   const { level } = useLocalSearchParams<{ level: string }>();
@@ -28,12 +28,12 @@ export default function QuizPlayScreen() {
   const [selectedAnswer, setSelectedAnswer] = useState<string>('');
   const [showResult, setShowResult] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
-  const [userAnswers, setUserAnswers] = useState<Array<{
+  const [userAnswers, setUserAnswers] = useState<{
     question: QuizQuestion;
     answer: string;
     isCorrect: boolean;
     responseTime: number;
-  }>>([]);
+  }[]>([]);
   const [questionStartTime, setQuestionStartTime] = useState(Date.now());
   const [showFinalResults, setShowFinalResults] = useState(false);
 

@@ -1,4 +1,3 @@
-import { supabase } from './supabase';
 import { 
   Achievement, 
   UserAchievement, 
@@ -6,7 +5,9 @@ import {
   QuizSession,
   ApiResponse 
 } from '@/types';
+
 import NotificationService from './notificationService';
+import { supabase } from './supabase';
 
 export interface UserStats {
   totalWordsLearned: number;
@@ -382,7 +383,7 @@ export class GamificationService {
     today.setHours(0, 0, 0, 0);
 
     let streak = 0;
-    let currentDate = new Date(today);
+    const currentDate = new Date(today);
 
     while (true) {
       const hasActivity = wordProgress.some(wp => {

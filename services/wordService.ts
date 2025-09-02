@@ -1,5 +1,6 @@
-import { supabase } from './supabase';
 import { SlangWord, WordOfTheDay, UserProgress, SearchResult, ApiResponse, PaginatedResponse } from '@/types';
+
+import { supabase } from './supabase';
 
 export class WordService {
   /**

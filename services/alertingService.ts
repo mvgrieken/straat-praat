@@ -1,5 +1,5 @@
-import { supabase } from './supabase';
 import { SecurityEventLogger } from './securityEventLogger';
+import { supabase } from './supabase';
 
 export interface AlertRule {
   id: string;

@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+
 import { MFAService, MFAVerificationResult } from '@/services/mfaService';
 
 interface MFAVerificationModalProps {

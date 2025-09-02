@@ -214,7 +214,7 @@ export function TranslationResult({ result, isLoading, direction }: TranslationR
               fontSize: settings.fontSize === 'large' ? 16 : 14,
             }}
           >
-            "{result.example}"
+            &ldquo;{result.example}&rdquo;
           </Text>
         </View>
       )}

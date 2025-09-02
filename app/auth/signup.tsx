@@ -1,4 +1,7 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   View,
   Text,
@@ -10,15 +13,12 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import { Link, router } from 'expo-router';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 
+import CheckboxField from '@/components/forms/CheckboxField';
+import TextField from '@/components/forms/TextField';
+import PasswordStrengthIndicator from '@/components/PasswordStrengthIndicator';
 import { useAuth } from '@/hooks/useAuth';
 import { signupSchema, SignupFormData } from '@/src/lib/validations/auth';
-import TextField from '@/components/forms/TextField';
-import CheckboxField from '@/components/forms/CheckboxField';
-import PasswordStrengthIndicator from '@/components/PasswordStrengthIndicator';
 
 export default function SignupScreen() {
   const [isLoading, setIsLoading] = useState(false);

@@ -1,4 +1,5 @@
 import { Session } from '@supabase/supabase-js';
+
 import { supabase } from './supabase';
 
 export interface SessionValidationResult {

@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -8,9 +9,9 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { NotificationSettings as NotificationSettingsType } from '@/types';
+
 import NotificationService from '@/services/notificationService';
+import { NotificationSettings as NotificationSettingsType } from '@/types';
 
 export default function NotificationSettings() {
   const [settings, setSettings] = useState<NotificationSettingsType>({

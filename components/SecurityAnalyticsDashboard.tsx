@@ -9,9 +9,11 @@ import {
   RefreshControl,
   Modal,
 } from 'react-native';
+
+import { useAuth } from '@/hooks/useAuth';
 import { AuthAnalyticsService } from '@/services/authAnalyticsService';
 import { SecurityMonitor } from '@/services/securityMonitor';
-import { useAuth } from '@/hooks/useAuth';
+
 import SecurityReportsManager from './SecurityReportsManager';
 import SystemHealthMonitor from './SystemHealthMonitor';
 

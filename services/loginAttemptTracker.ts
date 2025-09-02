@@ -1,5 +1,5 @@
-import { supabase } from './supabase';
 import { AuthAnalyticsService } from './authAnalyticsService';
+import { supabase } from './supabase';
 
 export interface LoginAttemptConfig {
   maxAttempts: number;

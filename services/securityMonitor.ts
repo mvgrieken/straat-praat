@@ -1,6 +1,6 @@
-import { supabase } from './supabase';
-import { SecurityEventLogger } from './securityEventLogger';
 import { AlertingService } from './alertingService';
+import { SecurityEventLogger } from './securityEventLogger';
+import { supabase } from './supabase';
 
 export interface SecurityMetrics {
   totalLogins: number;

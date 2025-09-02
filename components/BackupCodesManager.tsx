@@ -9,8 +9,9 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
-import { MFAService } from '@/services/mfaService';
+
 import { useAuth } from '@/hooks/useAuth';
+import { MFAService } from '@/services/mfaService';
 
 interface BackupCodesManagerProps {
   visible: boolean;
@@ -107,10 +108,7 @@ export default function BackupCodesManager({ visible, onClose }: BackupCodesMana
         <View style={styles.warningContainer}>
           <Text style={styles.warningTitle}>⚠️ Belangrijk</Text>
           <Text style={styles.warningText}>
-            • Bewaar backup codes veilig en privé{'\n'}
-            • Deel ze nooit met anderen{'\n'}
-            • Gebruik ze alleen als je authenticator app niet werkt{'\n'}
-            • Elke code kan maar één keer gebruikt worden
+            Bewaar deze codes veilig! Je hebt ze nodig als je &ldquo;2FA-app&rdquo; niet meer werkt.
           </Text>
         </View>
 

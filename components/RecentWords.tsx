@@ -88,7 +88,7 @@ export function RecentWords() {
               fontSize: settings.fontSize === 'large' ? 16 : 14,
             }}
           >
-            Je hebt nog geen woorden geleerd.{'\n'}Begin met het woord van de dag!
+            Je hebt nog geen woorden bekeken. Start met &ldquo;zoeken&rdquo; of &ldquo;vertalen&rdquo;!
           </Text>
           
           <TouchableOpacity 
