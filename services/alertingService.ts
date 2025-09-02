@@ -59,6 +59,24 @@ export interface AlertNotification {
   errorMessage?: string;
 }
 
+interface SecurityEvent {
+  eventType: string;
+  userId?: string;
+  email?: string;
+  timestamp: string;
+  metadata?: Record<string, string | number | boolean>;
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+interface AlertDetails {
+  eventType: string;
+  userId?: string;
+  email?: string;
+  timestamp: string;
+  metadata?: Record<string, string | number | boolean>;
+}
+
 export class AlertingService {
   private static readonly DEFAULT_RULES: AlertRule[] = [
     {
@@ -272,7 +290,7 @@ export class AlertingService {
   /**
    * Process security events and trigger alerts
    */
-  static async processSecurityEvent(event: any): Promise<void> {
+  static async processSecurityEvent(event: SecurityEvent): Promise<void> {
     try {
       const rules = await this.getAlertRules();
       const enabledRules = rules.filter(rule => rule.enabled);
@@ -294,7 +312,7 @@ export class AlertingService {
   /**
    * Evaluate if a rule should trigger an alert
    */
-  private static async evaluateRule(rule: AlertRule, event: any): Promise<boolean> {
+  private static async evaluateRule(rule: AlertRule, event: SecurityEvent): Promise<boolean> {
     try {
       switch (rule.condition) {
         case 'threshold':
@@ -315,7 +333,7 @@ export class AlertingService {
   /**
    * Evaluate threshold-based rules
    */
-  private static async evaluateThreshold(rule: AlertRule, event: any): Promise<boolean> {
+  private static async evaluateThreshold(rule: AlertRule, event: SecurityEvent): Promise<boolean> {
     if (!rule.threshold) return false;
 
     const { data: events, error } = await supabase
@@ -332,7 +350,7 @@ export class AlertingService {
   /**
    * Evaluate pattern-based rules
    */
-  private static async evaluatePattern(rule: AlertRule, event: any): Promise<boolean> {
+  private static async evaluatePattern(rule: AlertRule, event: SecurityEvent): Promise<boolean> {
     // Implement pattern matching logic
     // For now, return true for suspicious activity events
     return event.eventType === 'suspicious_activity';
@@ -341,7 +359,7 @@ export class AlertingService {
   /**
    * Evaluate anomaly-based rules
    */
-  private static async evaluateAnomaly(rule: AlertRule, event: any): Promise<boolean> {
+  private static async evaluateAnomaly(rule: AlertRule, event: SecurityEvent): Promise<boolean> {
     // Implement anomaly detection logic
     // For now, return false
     return false;
@@ -350,7 +368,7 @@ export class AlertingService {
   /**
    * Create an alert
    */
-  private static async createAlert(rule: AlertRule, event: any): Promise<Alert> {
+  private static async createAlert(rule: AlertRule, event: SecurityEvent): Promise<Alert> {
     try {
       const alert: Alert = {
         id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -403,7 +421,7 @@ export class AlertingService {
   /**
    * Generate alert message
    */
-  private static generateAlertMessage(rule: AlertRule, event: any): string {
+  private static generateAlertMessage(rule: AlertRule, event: SecurityEvent): string {
     const baseMessage = rule.description;
     
     switch (rule.eventType) {

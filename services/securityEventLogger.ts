@@ -170,7 +170,7 @@ export class SecurityEventLogger {
   }
 
   // Convenience methods for common security events
-  static async logLoginSuccess(userId: string, email: string, metadata?: Record<string, any>): Promise<void> {
+  static async logLoginSuccess(userId: string, email: string, metadata?: Record<string, string | number | boolean>): Promise<void> {
     await this.logEvent({
       eventType: 'login_success',
       userId,
@@ -180,7 +180,7 @@ export class SecurityEventLogger {
     });
   }
 
-  static async logLoginFailure(email: string, reason: string, metadata?: Record<string, any>): Promise<void> {
+  static async logLoginFailure(email: string, reason: string, metadata?: Record<string, string | number | boolean>): Promise<void> {
     await this.logEvent({
       eventType: 'login_failure',
       email,
@@ -192,7 +192,7 @@ export class SecurityEventLogger {
     });
   }
 
-  static async logAccountLocked(email: string, reason: string, metadata?: Record<string, any>): Promise<void> {
+  static async logAccountLocked(email: string, reason: string, metadata?: Record<string, string | number | boolean>): Promise<void> {
     await this.logEvent({
       eventType: 'account_locked',
       email,
@@ -204,7 +204,7 @@ export class SecurityEventLogger {
     });
   }
 
-  static async logSuspiciousActivity(userId: string, email: string, activity: string, metadata?: Record<string, any>): Promise<void> {
+  static async logSuspiciousActivity(userId: string, email: string, activity: string, metadata?: Record<string, string | number | boolean>): Promise<void> {
     await this.logEvent({
       eventType: 'suspicious_activity',
       userId,
@@ -230,7 +230,7 @@ export class SecurityEventLogger {
     });
   }
 
-  static async logPasswordChange(userId: string, email: string, metadata?: Record<string, any>): Promise<void> {
+  static async logPasswordChange(userId: string, email: string, metadata?: Record<string, string | number | boolean>): Promise<void> {
     await this.logEvent({
       eventType: 'password_change',
       userId,
@@ -240,7 +240,7 @@ export class SecurityEventLogger {
     });
   }
 
-  static async logSessionExpired(userId: string, email: string, metadata?: Record<string, any>): Promise<void> {
+  static async logSessionExpired(userId: string, email: string, metadata?: Record<string, string | number | boolean>): Promise<void> {
     await this.logEvent({
       eventType: 'session_expired',
       userId,
@@ -250,7 +250,7 @@ export class SecurityEventLogger {
     });
   }
 
-  static async logPermissionDenied(userId: string, email: string, resource: string, metadata?: Record<string, any>): Promise<void> {
+  static async logPermissionDenied(userId: string, email: string, resource: string, metadata?: Record<string, string | number | boolean>): Promise<void> {
     await this.logEvent({
       eventType: 'permission_denied',
       userId,
