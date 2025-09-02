@@ -26,6 +26,13 @@ interface SuggestedChanges {
   context?: string;
 }
 
+interface ModeratorPerformanceStats {
+  moderatorId: string;
+  moderatorName: string;
+  contributionsProcessed: number;
+  averageProcessingTime: number;
+}
+
 export class CommunityModerationService {
   /**
    * Submit a new community contribution
@@ -250,7 +257,7 @@ export class CommunityModerationService {
   /**
    * Get moderator performance statistics
    */
-  private static async getModeratorPerformance(): Promise<any[]> {
+  private static async getModeratorPerformance(): Promise<ModeratorPerformanceStats[]> {
     try {
       const { data, error } = await supabase
         .from('community_contributions')
@@ -267,7 +274,13 @@ export class CommunityModerationService {
       }
 
       // Group by moderator and calculate stats
-      const moderatorMap = new Map();
+      const moderatorMap = new Map<string, {
+        moderatorId: string;
+        moderatorName: string;
+        contributionsProcessed: number;
+        totalProcessingTime: number;
+        validProcessingTimes: number;
+      }>();
       
       data.forEach(contribution => {
         if (contribution.moderator_id) {
@@ -282,7 +295,7 @@ export class CommunityModerationService {
             });
           }
 
-          const stats = moderatorMap.get(moderatorId);
+          const stats = moderatorMap.get(moderatorId)!;
           stats.contributionsProcessed++;
 
           if (contribution.created_at && contribution.updated_at) {

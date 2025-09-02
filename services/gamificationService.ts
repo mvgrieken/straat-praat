@@ -31,6 +31,16 @@ interface AchievementResponse {
   };
 }
 
+interface ExperienceResponse {
+  success: boolean;
+  error?: string;
+  data?: {
+    experience_points: number;
+    level: number;
+    levelUp: boolean;
+  };
+}
+
 export class GamificationService {
   private static instance: GamificationService;
 
@@ -42,7 +52,7 @@ export class GamificationService {
   }
 
   // Experience and Leveling System
-  async addExperience(userId: string, amount: number): Promise<any> { // Changed ApiResponse to any for now
+  async addExperience(userId: string, amount: number): Promise<ExperienceResponse> {
     try {
       const { data: profile } = await supabase
         .from('profiles')
@@ -81,7 +91,14 @@ export class GamificationService {
         );
       }
 
-      return stats;
+      return {
+        success: true,
+        data: {
+          experience_points: newExperience,
+          level: newLevel,
+          levelUp,
+        },
+      };
     } catch (error) {
       console.error('Error adding experience:', error);
       return { success: false, error: 'Failed to add experience' };
