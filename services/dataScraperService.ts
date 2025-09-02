@@ -31,6 +31,19 @@ export interface ScrapingSource {
   successRate: number;
 }
 
+interface ScrapingStats {
+  totalScraped: number;
+  pendingReview: number;
+  approved: number;
+  rejected: number;
+  sourceStats: Array<{
+    source: string;
+    total: number;
+    approved: number;
+    rejected: number;
+  }>;
+}
+
 export class DataScraperService {
   private static readonly REDDIT_API_BASE = 'https://www.reddit.com';
   private static readonly URBAN_DICT_API = 'https://api.urbandictionary.com/v0';
@@ -547,7 +560,7 @@ export class DataScraperService {
   /**
    * Get scraping statistics
    */
-  static async getScrapingStats(): Promise<any> {
+  static async getScrapingStats(): Promise<ScrapingStats> {
     try {
       const { data, error } = await supabase
         .from('new_words')

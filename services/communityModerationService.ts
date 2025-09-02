@@ -13,11 +13,24 @@ export interface ModerationAction {
   };
 }
 
+interface UpdateContributionData {
+  status: 'approved' | 'rejected';
+  moderator_id: string;
+  moderator_notes: string;
+  updated_at: string;
+}
+
+interface SuggestedChanges {
+  word?: string;
+  meaning?: string;
+  context?: string;
+}
+
 export class CommunityModerationService {
   /**
    * Submit a new community contribution
    */
-  static async submitContribution(contribution: Omit<CommunityContribution, 'id' | 'status' | 'createdAt' | 'updatedAt'>): Promise<boolean> {
+  static async submitContribution(contribution: Omit<CommunityContribution, 'id' | 'status' | 'created_at' | 'updated_at'>): Promise<boolean> {
     try {
       // Check if word already exists
       const existingWord = await this.checkWordExists(contribution.word);
@@ -34,7 +47,7 @@ export class CommunityModerationService {
       const { error } = await supabase
         .from('community_contributions')
         .insert({
-          user_id: contribution.userId,
+          user_id: contribution.user_id,
           word: contribution.word,
           meaning: contribution.meaning,
           context: contribution.context,
@@ -72,31 +85,24 @@ export class CommunityModerationService {
         throw error;
       }
 
-      return (data || []).map(item => ({
-        id: item.id,
-        userId: item.user_id,
-        word: item.word,
-        meaning: item.meaning,
-        context: item.context,
-        status: item.status,
-        moderatorId: item.moderator_id,
-        moderatorNotes: item.moderator_notes,
-        createdAt: item.created_at,
-        updatedAt: item.updated_at,
-      }));
+      return data || [];
     } catch (error) {
       console.error('Failed to get pending contributions:', error);
-      return [];
+      throw error;
     }
   }
 
   /**
-   * Process moderation action
+   * Process moderation for a contribution
    */
-  static async processModeration(moderationAction: ModerationAction): Promise<boolean> {
+  static async processModeration({
+    contributionId,
+    moderatorId,
+    action,
+    notes,
+    suggestedChanges,
+  }: ModerationAction): Promise<boolean> {
     try {
-      const { contributionId, moderatorId, action, notes, suggestedChanges } = moderationAction;
-
       // Get the contribution
       const { data: contribution, error: fetchError } = await supabase
         .from('community_contributions')
@@ -105,14 +111,14 @@ export class CommunityModerationService {
         .single();
 
       if (fetchError || !contribution) {
-        throw new Error('Contribution not found');
+        throw new Error('Bijdrage niet gevonden');
       }
 
       // Update contribution status
-      const updateData: any = {
+      const updateData: UpdateContributionData = {
         status: action === 'approve' ? 'approved' : 'rejected',
         moderator_id: moderatorId,
-        moderator_notes: notes,
+        moderator_notes: notes || '',
         updated_at: new Date().toISOString(),
       };
 
@@ -145,7 +151,7 @@ export class CommunityModerationService {
   /**
    * Add approved contribution to main words table
    */
-  private static async addToWordsTable(contribution: any, suggestedChanges?: any): Promise<void> {
+  private static async addToWordsTable(contribution: CommunityContribution, suggestedChanges?: SuggestedChanges): Promise<void> {
     try {
       const wordData = {
         word: suggestedChanges?.word || contribution.word,

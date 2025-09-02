@@ -22,6 +22,15 @@ export interface LevelInfo {
   rewards: string[];
 }
 
+interface AchievementResponse {
+  success: boolean;
+  error?: string;
+  data?: {
+    newAchievements: Achievement[];
+    totalExperienceGained: number;
+  };
+}
+
 export class GamificationService {
   private static instance: GamificationService;
 
@@ -146,7 +155,7 @@ export class GamificationService {
   }
 
   // Achievement System
-  async checkAndAwardAchievements(userId: string): Promise<any> { // Changed ApiResponse to any for now
+  async checkAndAwardAchievements(userId: string): Promise<AchievementResponse> {
     try {
       const stats = await this.getUserStats(userId);
       if (!stats.success) return stats;
@@ -246,7 +255,7 @@ export class GamificationService {
         }
       }
 
-      return { success: true, data: newAchievements };
+      return { success: true, data: { newAchievements, totalExperienceGained: 0 } }; // Placeholder for total experience gained
     } catch (error) {
       console.error('Error checking achievements:', error);
       return { success: false, error: 'Failed to check achievements' };

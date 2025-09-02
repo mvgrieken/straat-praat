@@ -159,39 +159,36 @@ export default function ContentManagementInterface({ onClose }: ContentManagemen
         
         {stats ? (
           <>
-            <View style={styles.statsContainer}>
+            <View style={styles.statsGrid}>
               <View style={styles.statCard}>
-                <Text style={styles.statNumber}>{stats.totalPending}</Text>
+                <Text style={styles.statValue}>{stats.total_pending}</Text>
                 <Text style={styles.statLabel}>Wachtend</Text>
               </View>
-              
               <View style={styles.statCard}>
-                <Text style={styles.statNumber}>{stats.totalApproved}</Text>
+                <Text style={styles.statValue}>{stats.total_approved}</Text>
                 <Text style={styles.statLabel}>Goedgekeurd</Text>
               </View>
-              
               <View style={styles.statCard}>
-                <Text style={styles.statNumber}>{stats.totalRejected}</Text>
+                <Text style={styles.statValue}>{stats.total_rejected}</Text>
                 <Text style={styles.statLabel}>Afgekeurd</Text>
               </View>
-              
               <View style={styles.statCard}>
-                <Text style={styles.statNumber}>
-                  {Math.round(stats.averageProcessingTime / (1000 * 60 * 60))}u
+                <Text style={styles.statValue}>
+                  {Math.round(stats.average_processing_time / (1000 * 60 * 60))}u
                 </Text>
                 <Text style={styles.statLabel}>Gem. Verwerkingstijd</Text>
               </View>
             </View>
             
             <Text style={styles.sectionTitle}>Moderator Prestaties</Text>
-            {stats.moderatorPerformance.map((moderator: any) => (
-              <View key={moderator.moderatorId} style={styles.moderatorCard}>
-                <Text style={styles.moderatorName}>{moderator.moderatorName}</Text>
+            {stats.moderator_performance?.map((moderator) => (
+              <View key={moderator.moderator_id} style={styles.moderatorCard}>
+                <Text style={styles.moderatorName}>{moderator.moderator_name}</Text>
                 <Text style={styles.moderatorStats}>
-                  {moderator.contributionsProcessed} bijdragen verwerkt
+                  {moderator.contributions_processed} bijdragen verwerkt
                 </Text>
                 <Text style={styles.moderatorStats}>
-                  Gem. tijd: {Math.round(moderator.averageProcessingTime / (1000 * 60 * 60))}u
+                  Gem. tijd: {Math.round(moderator.average_processing_time / (1000 * 60 * 60))}u
                 </Text>
               </View>
             ))}
