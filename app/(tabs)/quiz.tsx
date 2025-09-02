@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -23,6 +23,9 @@ interface QuizLevel {
 export default function QuizScreen() {
   const { user } = useAuth();
   const { settings } = useSettings();
+  const [quizLevels, setQuizLevels] = useState<QuizLevel[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const isDark = settings.theme === 'dark';
 
   // Fetch quiz statistics
@@ -97,6 +100,8 @@ export default function QuizScreen() {
   const handleCustomQuiz = () => {
     Alert.alert('Binnenkort beschikbaar', 'De aangepaste quiz functie komt binnenkort beschikbaar.');
   };
+
+  const handleStartQuiz = (quiz: QuizLevel) => startQuiz(quiz);
 
   return (
     <SafeAreaView 
@@ -232,7 +237,7 @@ export default function QuizScreen() {
           {quizLevels?.map((quiz) => (
             <TouchableOpacity
               key={quiz.id}
-              onPress={() => startQuiz(quiz)}
+              onPress={() => handleStartQuiz(quiz)}
               style={{
                 backgroundColor: isDark ? COLORS.gray[800] : COLORS.white,
                 borderRadius: 16,

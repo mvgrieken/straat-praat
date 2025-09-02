@@ -19,11 +19,29 @@ import { WordService, WordSearchResult } from '@/services/wordService.simple';
 
 export default function TranslateScreen() {
   const { settings } = useSettings();
-  const isDark = settings.theme === 'dark';
-  
-  const [selectedWord, setSelectedWord] = useState<WordSearchResult | null>(null);
   const [mode, setMode] = useState<'search' | 'translate'>('search');
+  const [selectedWord, setSelectedWord] = useState<any>(null);
+  const [translationInput, setTranslationInput] = useState('');
+  const [translationResult, setTranslationResult] = useState<any>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
   const [direction, setDirection] = useState<'to_formal' | 'to_slang'>('to_formal');
+
+  const isDark = settings.theme === 'dark';
+
+  const handleSearchMode = () => setMode('search');
+  const handleTranslateMode = () => setMode('translate');
+  const handleDirectionChange = () => setDirection(prev => prev === 'to_formal' ? 'to_slang' : 'to_formal');
+  const handleWordSelect = async (word: string) => {
+    // Find the word in database when selected from recent
+    try {
+      const results = await WordService.searchWords(word, 1);
+      if (results.length > 0) {
+        setSelectedWord(results[0] || null);
+      }
+    } catch (error) {
+      console.error('Error searching word:', error);
+    }
+  };
 
   return (
     <SafeAreaView 
@@ -66,7 +84,7 @@ export default function TranslateScreen() {
               }}
             >
               <TouchableOpacity
-                onPress={() => setMode('search')}
+                onPress={handleSearchMode}
                 className={`flex-1 rounded-xl py-3 px-4 ${mode === 'search' ? 'shadow-sm' : ''}`}
                 style={{
                   backgroundColor: mode === 'search' 
@@ -87,7 +105,7 @@ export default function TranslateScreen() {
               </TouchableOpacity>
               
               <TouchableOpacity
-                onPress={() => setMode('translate')}
+                onPress={handleTranslateMode}
                 className={`flex-1 rounded-xl py-3 px-4 ${mode === 'translate' ? 'shadow-sm' : ''}`}
                 style={{
                   backgroundColor: mode === 'translate' 
@@ -116,7 +134,7 @@ export default function TranslateScreen() {
                 {/* Search Input */}
                 <View className="mb-6">
                   <SearchBar
-                    onWordSelect={setSelectedWord}
+                    onWordSelect={handleWordSelect}
                     placeholder="Zoek een slangwoord..."
                   />
                 </View>
@@ -228,17 +246,7 @@ export default function TranslateScreen() {
                 {/* Recent Searches */}
                 {!selectedWord && (
                   <RecentSearches
-                    onSelect={async (word) => {
-                    // Find the word in database when selected from recent
-                    try {
-                      const results = await WordService.searchWords(word, 1);
-                      if (results.length > 0) {
-                        setSelectedWord(results[0] || null);
-                      }
-                    } catch (error) {
-                      console.error('Error searching word:', error);
-                    }
-                  }}
+                    onSelect={handleWordSelect}
                   />
                 )}
               </>
@@ -247,7 +255,7 @@ export default function TranslateScreen() {
                 {/* AI Translator */}
                 <AITranslator
                   direction={direction}
-                  onDirectionChange={() => setDirection(prev => prev === 'to_formal' ? 'to_slang' : 'to_formal')}
+                  onDirectionChange={handleDirectionChange}
                 />
               </>
             )}

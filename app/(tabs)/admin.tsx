@@ -7,19 +7,22 @@ import { ContentManagementInterface } from '@/components/ContentManagementInterf
 export default function AdminScreen() {
   const [showManager, setShowManager] = useState(false);
 
+  const handleOpenManager = () => setShowManager(true);
+  const handleCloseManager = () => setShowManager(false);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Beheer</Text>
-        <TouchableOpacity style={styles.toggleButton} onPress={() => setShowManager(true)}>
+        <TouchableOpacity style={styles.toggleButton} onPress={handleOpenManager}>
           <Text style={styles.toggleText}>Open Content Beheer</Text>
         </TouchableOpacity>
       </View>
 
       <AdminWordManager />
 
-      <Modal visible={showManager} animationType="slide" onRequestClose={() => setShowManager(false)}>
-        <ContentManagementInterface onClose={() => setShowManager(false)} />
+      <Modal visible={showManager} animationType="slide" onRequestClose={handleCloseManager}>
+        <ContentManagementInterface onClose={handleCloseManager} />
       </Modal>
     </View>
   );

@@ -106,7 +106,7 @@ export default function HomeScreen() {
               fontSize: settings.fontSize === 'large' ? 28 : 24,
             }}
           >
-            {getGreeting()}{user?.displayName ? `, ${user.displayName}` : ''}!
+            {getGreeting()}{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ''}!
           </Text>
           <Text 
             className="text-base opacity-70"

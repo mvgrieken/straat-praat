@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,8 +9,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
 
 export default function ProfileScreen() {
-  const { user, signOut, loading } = useAuth();
+  const { user, signOut } = useAuth();
   const { settings, notificationSettings, updateSettings, updateNotificationSettings } = useSettings();
+  const [activeTab, setActiveTab] = useState('profile');
+  const [showMFA, setShowMFA] = useState(false);
+  const [showBackupCodes, setShowBackupCodes] = useState(false);
+
   const isDark = settings.theme === 'dark';
   
   const getCurrentLevel = () => {
@@ -30,6 +34,8 @@ export default function ProfileScreen() {
     ? 100 
     : user ? ((user.totalPoints ?? 0 - currentLevel.min) / (currentLevel.max - currentLevel.min)) * 100 : 0;
 
+  const handleLoginPress = () => router.push('/auth/login');
+  const handleTabChange = (tab: string) => setActiveTab(tab);
   const handleSignOut = () => {
     Alert.alert(
       'Uitloggen',
@@ -51,6 +57,10 @@ export default function ProfileScreen() {
       ]
     );
   };
+  const handleMFAEnable = () => setShowMFA(true);
+  const handleBackupCodes = () => setShowBackupCodes(true);
+  const handleCloseMFA = () => setShowMFA(false);
+  const handleCloseBackupCodes = () => setShowBackupCodes(false);
 
   if (!user) {
     return (
