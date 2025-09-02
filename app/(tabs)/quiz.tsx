@@ -23,8 +23,6 @@ interface QuizLevel {
 export default function QuizScreen() {
   const { user } = useAuth();
   const { settings } = useSettings();
-  const [quizLevels, setQuizLevels] = useState<QuizLevel[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const isDark = settings.theme === 'dark';
 
@@ -94,14 +92,12 @@ export default function QuizScreen() {
       return;
     }
 
-    router.push(`/quiz/${quiz.id}` as any);
+    router.push(`/quiz/${quiz.id}`);
   };
 
   const handleCustomQuiz = () => {
     Alert.alert('Binnenkort beschikbaar', 'De aangepaste quiz functie komt binnenkort beschikbaar.');
   };
-
-  const handleStartQuiz = (quiz: QuizLevel) => startQuiz(quiz);
 
   return (
     <SafeAreaView 
@@ -237,7 +233,7 @@ export default function QuizScreen() {
           {quizLevels?.map((quiz) => (
             <TouchableOpacity
               key={quiz.id}
-              onPress={() => handleStartQuiz(quiz)}
+              onPress={() => startQuiz(quiz)}
               style={{
                 backgroundColor: isDark ? COLORS.gray[800] : COLORS.white,
                 borderRadius: 16,

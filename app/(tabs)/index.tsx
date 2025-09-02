@@ -42,6 +42,16 @@ export default function HomeScreen() {
     refetch();
   };
 
+  const handleWordPress = (wordId: string) => {
+    // Navigate to word detail or show in modal
+    router.push(`/word/${wordId}`);
+  };
+
+  const handleTranslatePress = () => router.push('/translate');
+  const handleQuizPress = () => router.push('/quiz');
+  const handleFavoritesPress = () => router.push('/profile?tab=favorites');
+  const handleAchievementsPress = () => router.push('/profile?tab=achievements');
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Goedemorgen';
@@ -55,28 +65,28 @@ export default function HomeScreen() {
       title: 'Vertalen',
       icon: 'language-outline' as const,
       color: COLORS.primary[500],
-      onPress: () => router.push('/translate'),
+      onPress: handleTranslatePress,
     },
     {
       id: 'quiz',
       title: 'Quiz',
       icon: 'game-controller-outline' as const,
       color: COLORS.secondary[500],
-      onPress: () => router.push('/quiz'),
+      onPress: handleQuizPress,
     },
     {
       id: 'favorites',
       title: 'Favorieten',
       icon: 'heart-outline' as const,
       color: COLORS.error[500],
-      onPress: () => router.push('/profile?tab=favorites'),
+      onPress: handleFavoritesPress,
     },
     {
       id: 'achievements',
       title: 'Prestaties',
       icon: 'trophy-outline' as const,
       color: COLORS.warning[500],
-      onPress: () => router.push('/profile?tab=achievements'),
+      onPress: handleAchievementsPress,
     },
   ];
 
@@ -123,10 +133,7 @@ export default function HomeScreen() {
         {/* Word of the Day */}
         <View className="px-6 mb-6">
           <WordOfTheDayCard
-            onWordPress={(wordId) => {
-            // Navigate to word detail or show in modal
-            router.push(`/word/${wordId}` as any);
-          }}
+            onWordPress={handleWordPress}
           />
         </View>
 

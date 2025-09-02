@@ -69,6 +69,10 @@ export default function ResetPasswordScreen() {
     }
   };
 
+  const handleBackPress = () => {
+    router.back();
+  };
+
   if (emailSent) {
     return (
       <SafeAreaView style={styles.container}>
@@ -112,7 +116,7 @@ export default function ResetPasswordScreen() {
         <View style={styles.content}>
           <TouchableOpacity
             style={styles.backLink}
-            onPress={() => router.back()}
+            onPress={handleBackPress}
           >
             <Ionicons name="arrow-back" size={24} color="#3B82F6" />
             <Text style={styles.backLinkText}>Terug</Text>

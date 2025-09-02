@@ -53,6 +53,8 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleLoginPress = () => router.push('/auth/login');
+
   if (!user) {
     return (
       <SafeAreaView 
@@ -93,7 +95,7 @@ export default function ProfileScreen() {
         </Text>
         
         <TouchableOpacity
-          onPress={() => router.push('/auth/login' as any)}
+          onPress={handleLoginPress}
           style={{
             backgroundColor: COLORS.primary[500],
             borderRadius: 12,
