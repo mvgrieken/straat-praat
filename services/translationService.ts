@@ -33,6 +33,16 @@ export interface TranslationFeedback {
   notes?: string;
 }
 
+interface TranslationHistoryItem {
+  id: string;
+  user_id: string;
+  original_text: string;
+  translated_text: string;
+  source: 'ai' | 'database' | 'fallback';
+  confidence: number;
+  created_at: string;
+}
+
 export class TranslationService {
   /**
    * Smart translation with AI-powered fallback
@@ -226,7 +236,7 @@ export class TranslationService {
   /**
    * Get translation history for a user
    */
-  static async getTranslationHistory(userId: string, limit: number = 20): Promise<TranslationResult<any[]>> {
+  static async getTranslationHistory(userId: string, limit: number = 20): Promise<TranslationResult<TranslationHistoryItem[]>> {
     try {
       const { data, error } = await supabase
         .from('translation_logs')

@@ -196,26 +196,28 @@ export class WordService {
       }
 
       // Transform the data to match the WordOfTheDay interface
-      const wordOfTheDay: {
+      interface WordOfTheDayData {
         id: string;
         word_id: string;
-        word: string;
-        definition: string;
-        example: string;
-        scheduled_date: string;
-        date: string;
+        word?: string;
+        definition?: string;
+        example?: string;
+        scheduled_date?: string;
+        date?: string;
         created_at: string;
-        updated_at: string;
-      } = {
+        updated_at?: string;
+      }
+
+      const wordOfTheDay = {
         id: data.id,
         word_id: data.word_id,
-        word: (data as any).word || '',
-        definition: (data as any).definition || '',
-        example: (data as any).example,
-        scheduled_date: (data as any).scheduled_date,
-        date: (data as any).date,
+        word: (data as WordOfTheDayData).word || '',
+        definition: (data as WordOfTheDayData).definition || '',
+        example: (data as WordOfTheDayData).example,
+        scheduled_date: (data as WordOfTheDayData).scheduled_date,
+        date: (data as WordOfTheDayData).date,
         created_at: data.created_at,
-        updated_at: (data as any).updated_at || data.created_at,
+        updated_at: (data as WordOfTheDayData).updated_at || data.created_at,
       };
       
       return {
