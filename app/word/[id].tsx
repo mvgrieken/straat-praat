@@ -1,11 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
-
-import { useAuth } from '@/hooks/useAuth';
-import { useSettings } from '@/hooks/useSettings';
-import { WordService } from '@/services/wordService';
-import { COLORS } from '@/constants';
 
 export default function WordDetailPage() {
   const { id } = useLocalSearchParams();

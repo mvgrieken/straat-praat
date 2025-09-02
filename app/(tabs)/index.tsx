@@ -6,7 +6,6 @@ import { router } from 'expo-router';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
-import { WordService } from '@/services/wordService';
 import { COLORS } from '@/constants';
 import { WordOfTheDayCard } from '@/components/WordOfTheDayCard';
 import { StreakCard } from '@/components/StreakCard';

@@ -1,12 +1,22 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Link } from 'expo-router';
+import React, { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import { router } from 'expo-router';
 
 import { useAuth } from '@/hooks/useAuth';
 import { COLORS } from '@/constants';
 
 export default function IndexPage() {
   const { session, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading) {
+      if (session) {
+        router.replace('/(tabs)');
+      } else {
+        router.replace('/auth/login');
+      }
+    }
+  }, [session, loading]);
 
   // Show loading spinner while checking authentication
   return (

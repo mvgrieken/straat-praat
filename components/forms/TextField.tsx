@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { View, Text, TextInput, StyleSheet, TextInputProps } from 'react-native';
 import { Control, Controller, FieldPath, FieldValues } from 'react-hook-form';
 

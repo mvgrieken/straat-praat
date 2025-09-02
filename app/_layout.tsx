@@ -40,14 +40,9 @@ const queryClient = new QueryClient({
 
 // Separate component for app setup that's wrapped by SettingsProvider
 function AppSetup() {
-  const { requestPermissions } = useNotifications();
-
   useEffect(() => {
     const setupApp = async () => {
       try {
-        // Request notification permissions
-        await requestPermissions();
-        
         // Hide splash screen once everything is loaded
         await SplashScreen.hideAsync();
       } catch (error) {

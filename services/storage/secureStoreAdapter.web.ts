@@ -6,10 +6,13 @@ interface StorageAdapter {
 
 const STORAGE_PREFIX = 'sb_auth:';
 
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+
 const webStorageAdapter: StorageAdapter = {
   async getItem(key: string): Promise<string | null> {
     try {
-      if (typeof localStorage === 'undefined') {
+      if (!isBrowser) {
         return null;
       }
       return localStorage.getItem(`${STORAGE_PREFIX}${key}`);
@@ -21,7 +24,7 @@ const webStorageAdapter: StorageAdapter = {
 
   async setItem(key: string, value: string): Promise<void> {
     try {
-      if (typeof localStorage === 'undefined') {
+      if (!isBrowser) {
         throw new Error('localStorage not available');
       }
       localStorage.setItem(`${STORAGE_PREFIX}${key}`, value);
@@ -33,7 +36,7 @@ const webStorageAdapter: StorageAdapter = {
 
   async removeItem(key: string): Promise<void> {
     try {
-      if (typeof localStorage === 'undefined') {
+      if (!isBrowser) {
         return;
       }
       localStorage.removeItem(`${STORAGE_PREFIX}${key}`);

@@ -1,22 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 
-import { COLORS } from '@/constants';
+import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
-import { WordService } from '@/services/wordService';
+import { WordService } from '@/services/wordService.simple';
+import { COLORS } from '@/constants';
 import { SearchBar } from '@/components/SearchBar';
+import { TranslationResult } from '@/components/TranslationResult';
 import { RecentSearches } from '@/components/RecentSearches';
 import { AITranslator } from '@/components/AITranslator';
-import { Word, TranslationResult } from '@/types';
+import { Word, TranslationResult as TranslationResultType } from '@/types';
 
 export default function TranslateScreen() {
   const { settings } = useSettings();
   const [mode, setMode] = useState<'search' | 'translate'>('search');
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
   const [translationInput, setTranslationInput] = useState('');
-  const [translationResult, setTranslationResult] = useState<TranslationResult | null>(null);
+  const [translationResult, setTranslationResult] = useState<TranslationResultType | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
   const [direction, setDirection] = useState<'to_formal' | 'to_slang'>('to_formal');
 
@@ -44,11 +47,7 @@ export default function TranslateScreen() {
         backgroundColor: isDark ? COLORS.gray[900] : COLORS.gray[50] 
       }}
     >
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
+      <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
           {/* Header */}
           <View className="px-6 pt-4 pb-6">
             <Text 
@@ -256,7 +255,6 @@ export default function TranslateScreen() {
           </View>
 
         </ScrollView>
-      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

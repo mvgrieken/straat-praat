@@ -1,9 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
-import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, Alert, ScrollView, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 import { COLORS } from '@/constants';
 import { useAuth } from '@/hooks/useAuth';
