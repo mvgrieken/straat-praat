@@ -144,6 +144,29 @@ export interface SystemHealthReport {
   recommendations: string[];
 }
 
+interface SecurityEvent {
+  event_type: string;
+  created_at: string;
+  ip_address?: string;
+  user_email?: string;
+  risk_level?: 'low' | 'medium' | 'high' | 'critical';
+}
+
+interface EmergingThreat {
+  threat: string;
+  description: string;
+  firstSeen: Date;
+  frequency: number;
+  impact: 'low' | 'medium' | 'high';
+}
+
+interface IOCIndicator {
+  type: 'ip' | 'domain' | 'email' | 'hash';
+  value: string;
+  threat: string;
+  confidence: number;
+}
+
 export class SecurityReportingService {
   private static readonly REPORT_RETENTION_DAYS = 90;
 
@@ -691,13 +714,7 @@ export class SecurityReportingService {
     return levels[Math.max(currentIndex, newIndex)] as 'low' | 'medium' | 'high' | 'critical';
   }
 
-  private static identifyEmergingThreats(events: any[]): {
-    threat: string;
-    description: string;
-    firstSeen: Date;
-    frequency: number;
-    impact: 'low' | 'medium' | 'high';
-  }[] {
+  private static identifyEmergingThreats(events: SecurityEvent[]): EmergingThreat[] {
     const threatFrequency = new Map<string, { count: number; firstSeen: Date }>();
     
     events.forEach(event => {
@@ -731,18 +748,8 @@ export class SecurityReportingService {
       .slice(0, 10);
   }
 
-  private static generateIOCIndicators(events: any[]): {
-    type: 'ip' | 'domain' | 'email' | 'hash';
-    value: string;
-    threat: string;
-    confidence: number;
-  }[] {
-    const iocs: {
-      type: 'ip' | 'domain' | 'email' | 'hash';
-      value: string;
-      threat: string;
-      confidence: number;
-    }[] = [];
+  private static generateIOCIndicators(events: SecurityEvent[]): IOCIndicator[] {
+    const iocs: IOCIndicator[] = [];
 
     events.forEach(event => {
       if (event.ip_address && event.risk_level === 'high') {

@@ -189,8 +189,54 @@ export const updateUserProgress = async (
   return data;
 };
 
+interface WordUpdatePayload {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new: {
+    id: string;
+    word: string;
+    meaning: string;
+    difficulty: string;
+    created_at: string;
+    updated_at: string;
+  };
+  old: {
+    id: string;
+    word: string;
+    meaning: string;
+    difficulty: string;
+    created_at: string;
+    updated_at: string;
+  };
+}
+
+interface UserProgressPayload {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new: {
+    id: string;
+    user_id: string;
+    word_id: string;
+    mastery_level: number;
+    times_reviewed: number;
+    correct_answers: number;
+    incorrect_answers: number;
+    last_reviewed_at: string;
+    updated_at: string;
+  };
+  old: {
+    id: string;
+    user_id: string;
+    word_id: string;
+    mastery_level: number;
+    times_reviewed: number;
+    correct_answers: number;
+    incorrect_answers: number;
+    last_reviewed_at: string;
+    updated_at: string;
+  };
+}
+
 // Real-time subscriptions
-export const subscribeToWordUpdates = (callback: (payload: any) => void) => {
+export const subscribeToWordUpdates = (callback: (payload: WordUpdatePayload) => void) => {
   return supabase
     .channel('slang_words_changes')
     .on('postgres_changes', 
@@ -200,7 +246,7 @@ export const subscribeToWordUpdates = (callback: (payload: any) => void) => {
     .subscribe();
 };
 
-export const subscribeToUserProgress = (userId: string, callback: (payload: any) => void) => {
+export const subscribeToUserProgress = (userId: string, callback: (payload: UserProgressPayload) => void) => {
   return supabase
     .channel(`user_progress_${userId}`)
     .on('postgres_changes',
