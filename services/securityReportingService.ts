@@ -1,7 +1,8 @@
-import { AlertingService } from './alertingService';
 import { AuthAnalyticsService } from './authAnalyticsService';
 import { SecurityMonitor } from './securityMonitor';
+import { AlertingService } from './alertingService';
 import { supabase } from './supabase';
+import { SecurityReport, ReportType, ReportStatus } from '@/types';
 
 export interface SecurityReport {
   id: string;

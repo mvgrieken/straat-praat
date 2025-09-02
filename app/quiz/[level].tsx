@@ -1,22 +1,13 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useLocalSearchParams, router } from 'expo-router';
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  Modal,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { COLORS } from '@/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
+import { QuizService } from '@/services/quizService';
 import { GamificationService } from '@/services/gamificationService';
-import { QuizService, QuizQuestion } from '@/services/quizService';
+import { COLORS } from '@/constants';
 
 export default function QuizPlayScreen() {
   const { level } = useLocalSearchParams<{ level: string }>();

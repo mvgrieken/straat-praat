@@ -1,6 +1,8 @@
-import React, { forwardRef } from 'react';
-import { Control, Controller, FieldPath, FieldValues } from 'react-hook-form';
-import { View, Text, TextInput, TextInputProps, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text, TextInput, StyleSheet, TextInputProps } from 'react-native';
+import { useForm, Controller } from 'react-hook-form';
+
+import { COLORS } from '@/constants';
 
 interface TextFieldProps<
   TFieldValues extends FieldValues = FieldValues,

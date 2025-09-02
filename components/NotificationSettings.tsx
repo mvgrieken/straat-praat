@@ -1,16 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Switch,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Switch, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-import NotificationService from '@/services/notificationService';
+import { useAuth } from '@/hooks/useAuth';
+import { NotificationService } from '@/services/notificationService';
+import { COLORS } from '@/constants';
 import { NotificationSettings as NotificationSettingsType } from '@/types';
 
 export default function NotificationSettings() {
@@ -135,7 +129,7 @@ export default function NotificationSettings() {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Notificatie Instellingen</Text>
         <Text style={styles.subtitle}>
@@ -191,7 +185,7 @@ export default function NotificationSettings() {
           Notificaties worden alleen verzonden tijdens actieve uren (9:00 - 21:00)
         </Text>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 

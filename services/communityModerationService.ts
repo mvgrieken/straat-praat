@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { CommunityContribution, ModerationResult, ModerationStats } from '@/types';
 
 export interface CommunityContribution {
   id: string;

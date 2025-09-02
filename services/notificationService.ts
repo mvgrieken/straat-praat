@@ -1,10 +1,8 @@
-import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
-
-import { NotificationData, NotificationSettings } from '@/types';
+import * as Device from 'expo-device';
 
 import { supabase } from './supabase';
+import { NotificationSettings, PushNotification } from '@/types';
 
 // Configure notification behavior
 Notifications.setNotificationHandler({
@@ -28,15 +26,6 @@ export class NotificationService {
 
   async registerForPushNotificationsAsync(): Promise<string | null> {
     let token: string | null = null;
-
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
-      });
-    }
 
     if (Device.isDevice) {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -70,7 +59,7 @@ export class NotificationService {
   async scheduleLocalNotification(
     title: string,
     body: string,
-    data?: NotificationData,
+    data?: PushNotification,
     trigger?: Notifications.NotificationTriggerInput
   ): Promise<string> {
     const notificationId = await Notifications.scheduleNotificationAsync({
@@ -212,7 +201,7 @@ export class NotificationService {
   async sendCustomNotification(
     title: string,
     body: string,
-    data?: NotificationData
+    data?: PushNotification
   ): Promise<void> {
     await this.scheduleLocalNotification(title, body, data, null);
   }
@@ -290,7 +279,7 @@ export class NotificationService {
     userId: string,
     title: string,
     body: string,
-    data?: NotificationData
+    data?: PushNotification
   ): Promise<void> {
     // Get user's push token from database
     const { data: profile } = await supabase
@@ -326,7 +315,7 @@ export class NotificationService {
     userIds: string[],
     title: string,
     body: string,
-    data?: NotificationData
+    data?: PushNotification
   ): Promise<void> {
     const { data: profiles } = await supabase
       .from('profiles')

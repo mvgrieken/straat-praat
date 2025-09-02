@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-import { SecurityMonitor, SystemHealth, PerformanceMetrics } from '../services/securityMonitor';
+import { useAuth } from '@/hooks/useAuth';
+import { SecurityMonitor } from '@/services/securityMonitor';
+import { COLORS } from '@/constants';
 
 interface SystemHealthMonitorProps {
   visible: boolean;

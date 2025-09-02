@@ -1,9 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
-import { useAuth } from '@/hooks/useAuth';
-import { EnvGate } from '@/components/EnvGate';
+import { Platform } from 'react-native';
 
 import { COLORS } from '@/constants';
 import { useSettings } from '@/hooks/useSettings';

@@ -1,17 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-  Modal,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '@/hooks/useAuth';
 import { AuthAnalyticsService } from '@/services/authAnalyticsService';
+import { COLORS } from '@/constants';
 import { SecurityMonitor } from '@/services/securityMonitor';
 
 import SecurityReportsManager from './SecurityReportsManager';

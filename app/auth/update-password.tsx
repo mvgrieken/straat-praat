@@ -1,22 +1,13 @@
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-import TextField from '@/components/forms/TextField';
-import { updatePassword } from '@/services/supabase';
-import { updatePasswordSchema, UpdatePasswordFormData } from '@/src/lib/validations/auth';
+import { supabase } from '@/services/supabase';
+import { TextField } from '@/components/forms/TextField';
+import { z } from 'zod';
 
 export default function UpdatePasswordScreen() {
   const [isLoading, setIsLoading] = useState(false);

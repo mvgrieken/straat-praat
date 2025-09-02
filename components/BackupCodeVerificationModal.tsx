@@ -1,15 +1,10 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Modal,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Modal } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
+import { useAuth } from '@/hooks/useAuth';
 import { MFAService } from '@/services/mfaService';
+import { COLORS } from '@/constants';
 
 interface BackupCodeVerificationModalProps {
   visible: boolean;

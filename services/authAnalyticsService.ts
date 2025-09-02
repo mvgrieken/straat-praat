@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { UserBehavior, LoginPattern, SecurityEvent, UserStats } from '@/types';
 
 export interface LoginMetadata {
   email: string;

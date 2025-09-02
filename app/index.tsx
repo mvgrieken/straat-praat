@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
+
 import { useAuth } from '@/hooks/useAuth';
 import { COLORS } from '@/constants';
 

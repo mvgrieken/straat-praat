@@ -1,23 +1,15 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  SafeAreaView,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Alert, StyleSheet, ScrollView } from 'react-native';
+import { router } from 'expo-router';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
-import CheckboxField from '@/components/forms/CheckboxField';
-import TextField from '@/components/forms/TextField';
-import PasswordStrengthIndicator from '@/components/PasswordStrengthIndicator';
 import { useAuth } from '@/hooks/useAuth';
+import { TextField } from '@/components/forms/TextField';
+import { CheckboxField } from '@/components/forms/CheckboxField';
+import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
+import { z } from 'zod';
+
 import { signupSchema, SignupFormData } from '@/src/lib/validations/auth';
 
 export default function SignupScreen() {

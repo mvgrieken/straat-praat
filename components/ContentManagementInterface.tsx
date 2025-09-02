@@ -1,18 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  StyleSheet,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Modal, TextInput, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '@/hooks/useAuth';
 import { AITranslationService } from '@/services/aiTranslationService';
 import { CommunityModerationService, CommunityContribution } from '@/services/communityModerationService';
+import { COLORS } from '@/constants';
 
 interface ContentManagementInterfaceProps {
   onClose: () => void;

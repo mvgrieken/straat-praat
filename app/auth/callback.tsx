@@ -1,7 +1,9 @@
-import { useLocalSearchParams, router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 
+import { useAuth } from '@/hooks/useAuth';
+import { COLORS } from '@/constants';
 import { supabase } from '@/services/supabase';
 
 export default function AuthCallback() {

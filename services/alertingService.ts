@@ -1,5 +1,9 @@
 import { SecurityEventLogger } from './securityEventLogger';
 import { supabase } from './supabase';
+import { NotificationService } from './notificationService';
+import { EmailService } from './emailService';
+import { SlackService } from './slackService';
+import { AlertRule, Alert, AlertSeverity, AlertChannel } from '@/types';
 
 export interface AlertRule {
   id: string;

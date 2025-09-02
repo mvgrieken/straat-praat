@@ -1,6 +1,5 @@
-import { SlangWord, WordOfTheDay, UserProgress, SearchResult, ApiResponse, PaginatedResponse } from '@/types';
-
 import { supabase } from './supabase';
+import { Word, WordSearchResult, UserProgress } from '@/types';
 
 export class WordService {
   /**
@@ -12,7 +11,19 @@ export class WordService {
     limit?: number;
     offset?: number;
     search?: string;
-  } = {}): Promise<ApiResponse<PaginatedResponse<SlangWord>>> {
+  } = {}): Promise<{
+    data: {
+      data: Word[];
+      pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      };
+      success: boolean;
+    };
+    success: boolean;
+  }> {
     try {
       let query = supabase
         .from('slang_words')
@@ -65,7 +76,10 @@ export class WordService {
   /**
    * Get a single word by ID
    */
-  static async getWordById(wordId: string): Promise<ApiResponse<SlangWord>> {
+  static async getWordById(wordId: string): Promise<{
+    data: Word;
+    success: boolean;
+  }> {
     try {
       const { data, error } = await supabase
         .from('slang_words')
@@ -93,7 +107,7 @@ export class WordService {
   /**
    * Search words with fuzzy matching
    */
-  static async searchWords(query: string, limit: number = 10): Promise<SearchResult[]> {
+  static async searchWords(query: string, limit: number = 10): Promise<WordSearchResult[]> {
     try {
       const { data, error } = await supabase
         .from('slang_words')
@@ -106,7 +120,7 @@ export class WordService {
       }
 
       // Calculate relevance scores
-      const results: SearchResult[] = (data || []).map(word => {
+      const results: WordSearchResult[] = (data || []).map(word => {
         const wordLower = word.word.toLowerCase();
         const meaningLower = word.meaning?.toLowerCase() || '';
         const queryLower = query.toLowerCase();
@@ -147,7 +161,20 @@ export class WordService {
   /**
    * Get word of the day
    */
-  static async getWordOfTheDay(date?: string): Promise<ApiResponse<WordOfTheDay>> {
+  static async getWordOfTheDay(date?: string): Promise<{
+    data: {
+      id: string;
+      word_id: string;
+      word: string;
+      definition: string;
+      example: string;
+      scheduled_date: string;
+      date: string;
+      created_at: string;
+      updated_at: string;
+    };
+    success: boolean;
+  }> {
     try {
       const targetDate = date || new Date().toISOString().split('T')[0];
       if (!targetDate) {
@@ -169,7 +196,17 @@ export class WordService {
       }
 
       // Transform the data to match the WordOfTheDay interface
-      const wordOfTheDay: WordOfTheDay = {
+      const wordOfTheDay: {
+        id: string;
+        word_id: string;
+        word: string;
+        definition: string;
+        example: string;
+        scheduled_date: string;
+        date: string;
+        created_at: string;
+        updated_at: string;
+      } = {
         id: data.id,
         word_id: data.word_id,
         word: (data as any).word || '',
@@ -220,7 +257,10 @@ export class WordService {
   /**
    * Update word progress
    */
-  static async updateWordProgress(userId: string, wordId: string, progress: Partial<UserProgress>): Promise<ApiResponse<UserProgress>> {
+  static async updateWordProgress(userId: string, wordId: string, progress: Partial<UserProgress>): Promise<{
+    data: UserProgress;
+    success: boolean;
+  }> {
     try {
       const { data, error } = await supabase
         .from('user_progress')
@@ -257,7 +297,7 @@ export class WordService {
   /**
    * Get user favorite words
    */
-  static async getFavoriteWords(userId: string): Promise<SlangWord[]> {
+  static async getFavoriteWords(userId: string): Promise<Word[]> {
     try {
       const { data, error } = await supabase
         .from('favorite_words')
@@ -292,7 +332,9 @@ export class WordService {
   /**
    * Add word to favorites
    */
-  static async addToFavorites(userId: string, wordId: string): Promise<ApiResponse<void>> {
+  static async addToFavorites(userId: string, wordId: string): Promise<{
+    success: boolean;
+  }> {
     try {
       const { error } = await supabase
         .from('favorite_words')
@@ -321,7 +363,9 @@ export class WordService {
   /**
    * Remove word from favorites
    */
-  static async removeFromFavorites(userId: string, wordId: string): Promise<ApiResponse<void>> {
+  static async removeFromFavorites(userId: string, wordId: string): Promise<{
+    success: boolean;
+  }> {
     try {
       const { error } = await supabase
         .from('favorite_words')
@@ -348,7 +392,7 @@ export class WordService {
   /**
    * Get words by category
    */
-  static async getWordsByCategory(category: string, limit: number = 20): Promise<SlangWord[]> {
+  static async getWordsByCategory(category: string, limit: number = 20): Promise<Word[]> {
     try {
       const { data, error } = await supabase
         .from('slang_words')
@@ -370,7 +414,7 @@ export class WordService {
   /**
    * Get random words
    */
-  static async getRandomWords(count: number = 10): Promise<SlangWord[]> {
+  static async getRandomWords(count: number = 10): Promise<Word[]> {
     try {
       const { data, error } = await supabase
         .from('slang_words')

@@ -1,7 +1,6 @@
-import { validateEnvironment } from '@/src/env';
-import { ApiResponse } from '@/types';
-
 import { supabase } from './supabase';
+import { TranslationResult, TranslationSource, Language } from '@/types';
+
 import { WordService } from './wordService';
 
 
@@ -157,7 +156,7 @@ export class TranslationService {
     texts: string[],
     target: 'formal' | 'slang',
     context?: string
-  ): Promise<ApiResponse<TranslationResponse[]>> {
+  ): Promise<TranslationResult<TranslationResponse[]>> {
     try {
       const results: TranslationResponse[] = [];
       
@@ -188,7 +187,7 @@ export class TranslationService {
   /**
    * Submit feedback for a translation
    */
-  static async submitFeedback(feedback: TranslationFeedback): Promise<ApiResponse<void>> {
+  static async submitFeedback(feedback: TranslationFeedback): Promise<TranslationResult<void>> {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -227,7 +226,7 @@ export class TranslationService {
   /**
    * Get translation history for a user
    */
-  static async getTranslationHistory(userId: string, limit: number = 20): Promise<ApiResponse<any[]>> {
+  static async getTranslationHistory(userId: string, limit: number = 20): Promise<TranslationResult<any[]>> {
     try {
       const { data, error } = await supabase
         .from('translation_logs')
@@ -256,7 +255,7 @@ export class TranslationService {
   /**
    * Get translation statistics
    */
-  static async getTranslationStats(userId: string): Promise<ApiResponse<{
+  static async getTranslationStats(userId: string): Promise<TranslationResult<{
     totalTranslations: number;
     aiTranslations: number;
     databaseTranslations: number;

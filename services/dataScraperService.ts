@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { ScrapedContent, ScrapingSource, ScrapingConfig } from '@/types';
 
 export interface ScrapedWord {
   word: string;

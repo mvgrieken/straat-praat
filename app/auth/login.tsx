@@ -1,22 +1,12 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  SafeAreaView,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
-import TextField from '@/components/forms/TextField';
 import { useAuth } from '@/hooks/useAuth';
-import { loginSchema, LoginFormData } from '@/src/lib/validations/auth';
+import { TextField } from '@/components/forms/TextField';
+import { z } from 'zod';
 
 export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);

@@ -1,13 +1,6 @@
-import { 
-  Achievement, 
-  UserAchievement, 
-  UserProgress, 
-  QuizSession,
-  ApiResponse 
-} from '@/types';
-
-import NotificationService from './notificationService';
 import { supabase } from './supabase';
+import { NotificationService } from './notificationService';
+import { Achievement, UserAchievement, UserStats, LevelInfo } from '@/types';
 
 export interface UserStats {
   totalWordsLearned: number;
@@ -40,7 +33,7 @@ export class GamificationService {
   }
 
   // Experience and Leveling System
-  async addExperience(userId: string, amount: number): Promise<ApiResponse<UserStats>> {
+  async addExperience(userId: string, amount: number): Promise<any> { // Changed ApiResponse to any for now
     try {
       const { data: profile } = await supabase
         .from('profiles')
@@ -153,7 +146,7 @@ export class GamificationService {
   }
 
   // Achievement System
-  async checkAndAwardAchievements(userId: string): Promise<ApiResponse<Achievement[]>> {
+  async checkAndAwardAchievements(userId: string): Promise<any> { // Changed ApiResponse to any for now
     try {
       const stats = await this.getUserStats(userId);
       if (!stats.success) return stats;
@@ -292,7 +285,7 @@ export class GamificationService {
     return !!data;
   }
 
-  async getUserAchievements(userId: string): Promise<ApiResponse<UserAchievement[]>> {
+  async getUserAchievements(userId: string): Promise<any> { // Changed ApiResponse to any for now
     try {
       const { data, error } = await supabase
         .from('user_achievements')
@@ -313,7 +306,7 @@ export class GamificationService {
   }
 
   // Stats and Progress Tracking
-  async getUserStats(userId: string): Promise<ApiResponse<UserStats>> {
+  async getUserStats(userId: string): Promise<any> { // Changed ApiResponse to any for now
     try {
       // Get basic profile info
       const { data: profile } = await supabase
@@ -376,7 +369,7 @@ export class GamificationService {
     }
   }
 
-  private calculateCurrentStreak(wordProgress: UserProgress[]): number {
+  private calculateCurrentStreak(wordProgress: any[]): number { // Changed UserProgress to any[]
     if (!wordProgress.length) return 0;
 
     const today = new Date();
@@ -408,7 +401,7 @@ export class GamificationService {
     userId: string,
     wordId: string,
     masteryLevel: number
-  ): Promise<ApiResponse<void>> {
+  ): Promise<any> { // Changed ApiResponse to any for now
     try {
       const { error } = await supabase
         .from('user_progress')
@@ -441,7 +434,7 @@ export class GamificationService {
     quizId: string,
     score: number,
     totalQuestions: number
-  ): Promise<ApiResponse<void>> {
+  ): Promise<any> { // Changed ApiResponse to any for now
     try {
       // Save quiz session
       const { error } = await supabase
@@ -475,7 +468,7 @@ export class GamificationService {
   }
 
   // Leaderboard
-  async getLeaderboard(limit: number = 10): Promise<ApiResponse<any[]>> {
+  async getLeaderboard(limit: number = 10): Promise<any> { // Changed ApiResponse to any for now
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -500,7 +493,7 @@ export class GamificationService {
   }
 
   // Daily Challenges (simplified - no database table)
-  async getDailyChallenge(userId: string): Promise<ApiResponse<any>> {
+  async getDailyChallenge(userId: string): Promise<any> { // Changed ApiResponse to any for now
     try {
       // Generate a simple daily challenge without database storage
       const challengeTypes = ['learn_words', 'complete_quiz', 'maintain_streak'];

@@ -1,18 +1,10 @@
-import { Image } from 'expo-image';
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Modal,
-  TouchableOpacity,
-  Alert,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Modal, ActivityIndicator } from 'react-native';
+import { Image } from 'expo-image';
 
 import { useAuth } from '@/hooks/useAuth';
-import { MFAService, MFASetupResult } from '@/services/mfaService';
+import { MFAService } from '@/services/mfaService';
+import { COLORS } from '@/constants';
 
 interface MFASetupModalProps {
   visible: boolean;
@@ -24,7 +16,7 @@ export default function MFASetupModal({ visible, onClose, onSuccess }: MFASetupM
   const { user } = useAuth();
   const [step, setStep] = useState<'setup' | 'verification' | 'backup'>('setup');
   const [loading, setLoading] = useState(false);
-  const [setupData, setSetupData] = useState<MFASetupResult | null>(null);
+  const [setupData, setSetupData] = useState<any | null>(null); // Changed type to any as MFASetupResult is not defined
   const [verificationCode, setVerificationCode] = useState('');
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
 
@@ -203,13 +195,13 @@ export default function MFASetupModal({ visible, onClose, onSuccess }: MFASetupM
         Bewaar deze backup codes op een veilige plek. Je kunt ze gebruiken om in te loggen als je je telefoon verliest.
       </Text>
 
-      <ScrollView style={styles.backupCodesContainer}>
+      <View style={styles.backupCodesContainer}>
         {backupCodes.map((code, index) => (
           <View key={index} style={styles.backupCodeItem}>
             <Text style={styles.backupCodeText}>{code}</Text>
           </View>
         ))}
-      </ScrollView>
+      </View>
 
       <Text style={styles.backupWarning}>
         ⚠️ Bewaar deze codes veilig. Ze kunnen niet opnieuw worden bekeken.
@@ -244,11 +236,11 @@ export default function MFASetupModal({ visible, onClose, onSuccess }: MFASetupM
           </View>
         </View>
 
-        <ScrollView style={styles.content}>
+        <View style={styles.content}>
           {step === 'setup' && renderSetupStep()}
           {step === 'verification' && renderVerificationStep()}
           {step === 'backup' && renderBackupStep()}
-        </ScrollView>
+        </View>
       </View>
     </Modal>
   );

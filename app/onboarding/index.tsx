@@ -1,6 +1,9 @@
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { router } from 'expo-router';
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+
+import { useAuth } from '@/hooks/useAuth';
+import { COLORS } from '@/constants';
 
 export default function OnboardingPage() {
   const handleComplete = () => {

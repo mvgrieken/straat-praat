@@ -1,6 +1,5 @@
-// This file serves as an index file for platform-specific storage adapters
-// Metro bundler will automatically pick .native.ts or .web.ts based on platform
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
 interface StorageAdapter {

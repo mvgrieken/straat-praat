@@ -1,12 +1,6 @@
 import { AuthAnalyticsService } from './authAnalyticsService';
 import { supabase } from './supabase';
-
-export interface LoginAttemptConfig {
-  maxAttempts: number;
-  lockoutDuration: number; // in minutes
-  resetAfterSuccess: boolean;
-  trackIPAddress: boolean;
-}
+import { LoginAttempt, LoginAttemptConfig } from '@/types';
 
 export interface LoginAttemptResult {
   success: boolean;
