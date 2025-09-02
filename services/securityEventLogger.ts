@@ -8,7 +8,7 @@ export interface SecurityEvent {
   email?: string;
   ipAddress?: string;
   userAgent?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, string | number | boolean>;
   severity: 'low' | 'medium' | 'high' | 'critical';
   timestamp: Date;
 }

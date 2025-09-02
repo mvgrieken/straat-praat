@@ -167,6 +167,25 @@ interface IOCIndicator {
   confidence: number;
 }
 
+interface HealthData {
+  uptime: number;
+  failedLogins: number;
+  suspiciousActivities: number;
+  criticalAlerts: number;
+}
+
+interface PerformanceMetrics {
+  averageResponseTime: number;
+  peakResponseTime: number;
+  errorRate: number;
+}
+
+interface SecurityMetrics {
+  vulnerabilities: number;
+  patchesApplied: number;
+  securityScore: number;
+}
+
 export class SecurityReportingService {
   private static readonly REPORT_RETENTION_DAYS = 90;
 
@@ -773,11 +792,7 @@ export class SecurityReportingService {
     return iocs.slice(0, 20);
   }
 
-  private static async getPerformanceMetrics(): Promise<{
-    averageResponseTime: number;
-    peakResponseTime: number;
-    errorRate: number;
-  }> {
+  private static async getPerformanceMetrics(): Promise<PerformanceMetrics> {
     // This would typically come from monitoring tools
     // For now, return mock data
     return {
@@ -787,11 +802,7 @@ export class SecurityReportingService {
     };
   }
 
-  private static async getSecurityMetrics(): Promise<{
-    vulnerabilities: number;
-    patchesApplied: number;
-    securityScore: number;
-  }> {
+  private static async getSecurityMetrics(): Promise<SecurityMetrics> {
     // This would typically come from security scanning tools
     // For now, return mock data
     return {
@@ -801,7 +812,7 @@ export class SecurityReportingService {
     };
   }
 
-  private static calculateHealthScore(healthData: any): number {
+  private static calculateHealthScore(healthData: HealthData): number {
     // Calculate health score based on various metrics
     let score = 100;
     
@@ -821,9 +832,9 @@ export class SecurityReportingService {
   }
 
   private static generateHealthRecommendations(
-    healthData: any,
-    performance: any,
-    security: any
+    healthData: HealthData,
+    performance: PerformanceMetrics,
+    security: SecurityMetrics
   ): string[] {
     const recommendations = [];
     
