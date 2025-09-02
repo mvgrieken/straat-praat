@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Modal, ActivityIndicator } from 'react-native';
-import { Image } from 'expo-image';
+import { View, Text, TouchableOpacity, Alert, Modal, StyleSheet, TextInput, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '@/hooks/useAuth';
 import { MFAService } from '@/services/mfaService';
-import { COLORS } from '@/constants';
+import { MFASetupResult } from '@/types';
 
 interface MFASetupModalProps {
   visible: boolean;
@@ -16,7 +16,7 @@ export default function MFASetupModal({ visible, onClose, onSuccess }: MFASetupM
   const { user } = useAuth();
   const [step, setStep] = useState<'setup' | 'verification' | 'backup'>('setup');
   const [loading, setLoading] = useState(false);
-  const [setupData, setSetupData] = useState<any | null>(null); // Changed type to any as MFASetupResult is not defined
+  const [setupData, setSetupData] = useState<MFASetupResult | null>(null);
   const [verificationCode, setVerificationCode] = useState('');
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
 

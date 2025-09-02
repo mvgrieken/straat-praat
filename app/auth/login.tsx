@@ -1,17 +1,27 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, SafeAreaView } from 'react-native';
-import { router } from 'expo-router';
-import { useForm, Controller } from 'react-hook-form';
+import { View, Text, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '@/hooks/useAuth';
 import { TextField } from '@/components/forms/TextField';
-import { loginSchema, LoginFormData } from '@/src/lib/validations/auth';
+import { CheckboxField } from '@/components/forms/CheckboxField';
+import { loginSchema, LoginFormData } from '@/schemas/auth';
+import { styles } from '@/styles/auth';
+
+interface AccountStatus {
+  locked: boolean;
+  lockoutExpiry?: string;
+  failedAttempts: number;
+}
 
 export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [loginAttempts, setLoginAttempts] = useState<number>(0);
-  const [accountStatus, setAccountStatus] = useState<any>(null);
+  const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
   const { signIn, getAccountStatus } = useAuth();
 
   const {

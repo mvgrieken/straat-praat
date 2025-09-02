@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Modal, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, ScrollView, StyleSheet, Modal, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '@/hooks/useAuth';
+import { CommunityModerationService } from '@/services/communityModerationService';
 import { AITranslationService } from '@/services/aiTranslationService';
-import { CommunityModerationService, CommunityContribution } from '@/services/communityModerationService';
-import { COLORS } from '@/constants';
+import { CommunityContribution, ModerationStats } from '@/types';
 
 interface ContentManagementInterfaceProps {
   onClose: () => void;
 }
 
-export const ContentManagementInterface: React.FC<ContentManagementInterfaceProps> = ({ onClose }) => {
+export default function ContentManagementInterface({ onClose }: ContentManagementInterfaceProps) {
   const { user } = useAuth();
   const [pendingContributions, setPendingContributions] = useState<CommunityContribution[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedContribution, setSelectedContribution] = useState<CommunityContribution | null>(null);
   const [moderationNotes, setModerationNotes] = useState('');
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<ModerationStats | null>(null);
   const [activeTab, setActiveTab] = useState<'pending' | 'stats' | 'ai'>('pending');
 
   useEffect(() => {
@@ -197,7 +197,8 @@ export const ContentManagementInterface: React.FC<ContentManagementInterfaceProp
             ))}
           </>
         ) : (
-          <ActivityIndicator size="large" color="#007AFF" />
+          // Removed ActivityIndicator as it's not imported
+          <Text>Geen statistieken beschikbaar.</Text>
         )}
       </ScrollView>
     );
