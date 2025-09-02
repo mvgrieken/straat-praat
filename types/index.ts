@@ -114,10 +114,14 @@ export interface LevelInfo {
 export interface CommunityContribution {
   id: string;
   user_id: string;
+  word: string;
+  meaning: string;
+  context?: string;
   content_type: 'word' | 'translation' | 'example';
   content: string;
   status: 'pending' | 'approved' | 'rejected';
   moderator_notes?: string;
+  moderator_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -136,6 +140,12 @@ export interface ModerationStats {
   total_approved: number;
   total_rejected: number;
   average_processing_time: number;
+  moderator_performance?: {
+    moderator_id: string;
+    moderator_name: string;
+    contributions_processed: number;
+    average_processing_time: number;
+  }[];
 }
 
 // Security Types

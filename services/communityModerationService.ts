@@ -1,19 +1,6 @@
 import { supabase } from './supabase';
 import { CommunityContribution, ModerationResult, ModerationStats } from '@/types';
 
-export interface CommunityContribution {
-  id: string;
-  userId?: string;
-  word: string;
-  meaning: string;
-  context?: string;
-  status: 'pending' | 'approved' | 'rejected';
-  moderatorId?: string;
-  moderatorNotes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface ModerationAction {
   contributionId: string;
   moderatorId: string;
@@ -24,19 +11,6 @@ export interface ModerationAction {
     meaning?: string;
     context?: string;
   };
-}
-
-export interface ModerationStats {
-  totalPending: number;
-  totalApproved: number;
-  totalRejected: number;
-  averageProcessingTime: number;
-  moderatorPerformance: {
-    moderatorId: string;
-    moderatorName: string;
-    contributionsProcessed: number;
-    averageProcessingTime: number;
-  }[];
 }
 
 export class CommunityModerationService {

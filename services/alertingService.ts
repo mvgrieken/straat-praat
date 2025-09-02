@@ -22,8 +22,16 @@ export interface AlertRule {
 
 export interface AlertAction {
   type: 'email' | 'push' | 'webhook' | 'sms' | 'slack';
-  config: Record<string, any>;
+  config: AlertConfig;
   enabled: boolean;
+}
+
+export interface AlertConfig {
+  recipients?: string[];
+  channel?: string;
+  webhook_url?: string;
+  phone_number?: string;
+  [key: string]: string | string[] | undefined;
 }
 
 export interface Alert {
@@ -32,7 +40,7 @@ export interface Alert {
   ruleName: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
   message: string;
-  details: Record<string, any>;
+  details: Record<string, string | number | boolean>;
   status: 'active' | 'acknowledged' | 'resolved';
   createdAt: string;
   acknowledgedAt?: string;
@@ -474,7 +482,7 @@ export class AlertingService {
   /**
    * Send email notification
    */
-  private static async sendEmailNotification(notification: AlertNotification, config: any): Promise<void> {
+  private static async sendEmailNotification(notification: AlertNotification, config: AlertConfig): Promise<void> {
     // Implement email sending logic
     console.log('Sending email notification:', notification.message, 'to:', config.recipients);
     
@@ -485,7 +493,7 @@ export class AlertingService {
   /**
    * Send push notification
    */
-  private static async sendPushNotification(notification: AlertNotification, config: any): Promise<void> {
+  private static async sendPushNotification(notification: AlertNotification, config: AlertConfig): Promise<void> {
     // Implement push notification logic
     console.log('Sending push notification:', notification.message, 'to channel:', config.channel);
     
@@ -496,7 +504,7 @@ export class AlertingService {
   /**
    * Send webhook notification
    */
-  private static async sendWebhookNotification(notification: AlertNotification, config: any): Promise<void> {
+  private static async sendWebhookNotification(notification: AlertNotification, config: AlertConfig): Promise<void> {
     // Implement webhook notification logic
     console.log('Sending webhook notification:', notification.message);
     
@@ -507,7 +515,7 @@ export class AlertingService {
   /**
    * Send Slack notification
    */
-  private static async sendSlackNotification(notification: AlertNotification, config: any): Promise<void> {
+  private static async sendSlackNotification(notification: AlertNotification, config: AlertConfig): Promise<void> {
     // Implement Slack notification logic
     console.log('Sending Slack notification:', notification.message, 'to channel:', config.channel);
     
