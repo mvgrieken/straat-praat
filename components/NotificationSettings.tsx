@@ -1,101 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Switch, Alert, ScrollView } from 'react-native';
+import { View, Text, Switch, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useAuth } from '@/hooks/useAuth';
+import { useSettings } from '@/hooks/useSettings';
 import { NotificationService } from '@/services/notificationService';
-import { COLORS } from '@/constants';
-import { NotificationSettings as NotificationSettingsType } from '@/types';
+import { NotificationSettings } from '@/types';
 
-export default function NotificationSettings() {
-  const [settings, setSettings] = useState<NotificationSettingsType>({
-    word_of_day: true,
-    quiz_reminders: true,
-    streak_reminders: true,
-    achievements: true,
-    community_updates: true,
-  });
-  const [loading, setLoading] = useState(true);
+type IconName = keyof typeof Ionicons.glyphMap;
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
+interface NotificationSettingsScreenProps {
+  onClose?: () => void;
+}
 
-  const loadSettings = async () => {
+export default function NotificationSettingsScreen({ onClose }: NotificationSettingsScreenProps) {
+  const { settings, updateSettings } = useSettings();
+  const [loading, setLoading] = useState(false);
+
+  const testNotification = async (type: string) => {
     try {
-      const currentSettings = await NotificationService.getNotificationSettings();
-      if (currentSettings) {
-        setSettings(currentSettings);
-      }
+      setLoading(true);
+      await NotificationService.sendTestNotification(type);
+      Alert.alert('Succes', 'Test notificatie verzonden!');
     } catch (error) {
-      console.error('Error loading notification settings:', error);
+      Alert.alert('Fout', 'Kon test notificatie niet verzenden');
     } finally {
       setLoading(false);
     }
   };
 
-  const updateSetting = async (key: keyof NotificationSettingsType, value: boolean) => {
-    try {
-      const newSettings = { ...settings, [key]: value };
-      setSettings(newSettings);
-      await NotificationService.updateNotificationSettings(newSettings);
-    } catch (error) {
-      console.error('Error updating notification setting:', error);
-      Alert.alert('Error', 'Failed to update notification setting');
-      // Revert the change
-      setSettings(settings);
-    }
-  };
-
-  const testNotification = async (type: string) => {
-    try {
-      switch (type) {
-        case 'word_of_day':
-          await NotificationService.sendCustomNotification(
-            'Woord van de Dag! 🎯',
-            'Dit is een test notificatie voor het woord van de dag.',
-            { type: 'WORD_OF_DAY' }
-          );
-          break;
-        case 'quiz_reminder':
-          await NotificationService.sendCustomNotification(
-            'Quiz Tijd! 🧠',
-            'Dit is een test notificatie voor quiz herinneringen.',
-            { type: 'QUIZ_REMINDER' }
-          );
-          break;
-        case 'streak_reminder':
-          await NotificationService.sendCustomNotification(
-            'Streak in Gevaar! 🔥',
-            'Dit is een test notificatie voor streak herinneringen.',
-            { type: 'STREAK_REMINDER' }
-          );
-          break;
-        case 'achievement':
-          await NotificationService.sendAchievementNotification('Test Achievement');
-          break;
-        case 'community_update':
-          await NotificationService.sendCommunityUpdateNotification('new_word');
-          break;
-      }
-      Alert.alert('Success', 'Test notificatie verzonden!');
-    } catch (error) {
-      console.error('Error sending test notification:', error);
-      Alert.alert('Error', 'Failed to send test notification');
-    }
+  const updateSetting = (key: keyof NotificationSettings, value: boolean) => {
+    updateSettings({ [key]: value });
   };
 
   const renderSettingItem = (
-    key: keyof NotificationSettingsType,
+    key: keyof NotificationSettings,
     title: string,
     description: string,
-    icon: string,
+    icon: IconName,
     testType?: string
   ) => (
     <View key={key} style={styles.settingItem}>
       <View style={styles.settingHeader}>
         <View style={styles.settingInfo}>
-          <Ionicons name={icon as any} size={24} color="#3B82F6" style={styles.settingIcon} />
+          <Ionicons name={icon} size={24} color="#3B82F6" style={styles.settingIcon} />
           <View style={styles.settingText}>
             <Text style={styles.settingTitle}>{title}</Text>
             <Text style={styles.settingDescription}>{description}</Text>

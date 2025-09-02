@@ -168,7 +168,7 @@ export function RecentWords() {
         {recentWords.map((word) => (
           <TouchableOpacity
             key={word.id}
-            onPress={() => router.push(`/word/${word.id}` as any)}
+            onPress={() => router.push(`/word/${word.id}`)}
             className="rounded-xl p-4 mr-4 shadow-sm"
             style={{ 
               backgroundColor: isDark ? COLORS.gray[800] : COLORS.white,
