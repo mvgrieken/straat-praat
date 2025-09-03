@@ -11,13 +11,13 @@ import { COLORS } from '@/constants';
 import { SearchBar } from '@/components/SearchBar';
 import { TranslationResult } from '@/components/TranslationResult';
 import { RecentSearches } from '@/components/RecentSearches';
-import { AITranslator } from '@/components/AITranslator';
-import { Word, TranslationResult as TranslationResultType } from '@/types';
+import AITranslator from '@/components/AITranslator';
+import { WordSearchResult, TranslationResult as TranslationResultType } from '@/types';
 
 export default function TranslateScreen() {
   const { settings } = useSettings();
   const [mode, setMode] = useState<'search' | 'translate'>('search');
-  const [selectedWord, setSelectedWord] = useState<Word | null>(null);
+  const [selectedWord, setSelectedWord] = useState<WordSearchResult | null>(null);
   const [translationInput, setTranslationInput] = useState('');
   const [translationResult, setTranslationResult] = useState<TranslationResultType | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);

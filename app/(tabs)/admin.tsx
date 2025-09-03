@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, Modal } from 'react-native';
 
 import AdminWordManager from '@/components/AdminWordManager';
-import { ContentManagementInterface } from '@/components/ContentManagementInterface';
+import ContentManagementInterface from '@/components/ContentManagementInterface';
 
 export default function AdminScreen() {
   const [showManager, setShowManager] = useState(false);

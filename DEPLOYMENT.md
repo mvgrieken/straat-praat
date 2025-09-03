@@ -17,7 +17,7 @@
 
 4. **Configureer de build instellingen:**
    ```
-   Build command: npm run start:web
+   Build command: npx expo start --web --port 8888
    Publish directory: web-build
    ```
 
@@ -25,6 +25,7 @@
    ```
    EXPO_PUBLIC_SUPABASE_URL=https://trrsgvxoylhcudtiimvb.supabase.co
    EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   EXPO_PUBLIC_PLATFORM=web
    ```
 
 6. **Klik op "Deploy site"**
@@ -33,60 +34,99 @@
 
 1. **Start de Expo web server:**
    ```bash
-   npm run start:web
+   npx expo start --web
    ```
 
-2. **Open http://localhost:8081 in je browser**
+2. **Open de app in je browser op `http://localhost:8081`**
 
-3. **Gebruik Netlify CLI voor deploy:**
+3. **Deploy naar Netlify via de Netlify CLI:**
    ```bash
    npm install -g netlify-cli
    netlify login
-   netlify deploy --prod --dir=web-build
+   netlify deploy --prod
    ```
 
 ## 📱 **Mobile App Deploy**
 
 ### **iOS App Store**
 ```bash
+# Build voor iOS
 npm run build:ios
-# Volg de EAS Build instructies
+
+# Upload naar App Store Connect
+eas submit --platform ios
 ```
 
 ### **Google Play Store**
 ```bash
+# Build voor Android
 npm run build:android
-# Volg de EAS Build instructies
+
+# Upload naar Google Play Console
+eas submit --platform android
 ```
 
-## 🔧 **Troubleshooting**
+## 🔧 **Environment Variables**
 
-### **Web Build Problemen**
-- **React Native Reanimated**: Gebruik `npm run start:web` in plaats van build
-- **NativeWind**: Werkt alleen in development mode voor nu
-- **Metro Bundler**: Start opnieuw met `--clear` flag
+### **Lokaal Development**
+Maak een `.env.local` bestand aan:
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://trrsgvxoylhcudtiimvb.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+EXPO_PUBLIC_PLATFORM=web
+```
 
-### **Environment Variables**
-- Zorg dat alle `EXPO_PUBLIC_*` variabelen zijn ingesteld
-- Controleer Supabase configuratie in `app.json`
+### **Netlify**
+Voeg deze toe in je Netlify dashboard onder Site settings > Environment variables.
 
-## 📊 **Deploy Status**
+## 🚨 **Troubleshooting**
 
-- ✅ **GitHub**: Repository is up-to-date
-- ✅ **Netlify**: Configuratie klaar
-- ⚠️ **Web Build**: Gebruik development server voor nu
-- ✅ **Mobile**: EAS Build klaar
+### **Build Fouten**
+- **NativeWind problemen**: Gebruik de directe deploy strategie
+- **React Native Reanimated**: Alleen beschikbaar op native platforms
+- **Metro bundler errors**: Probeer `npx expo start --clear`
+
+### **Runtime Fouten**
+- **Supabase connectie**: Controleer environment variables
+- **Service Worker**: Alleen beschikbaar op web
+- **Platform-specifieke code**: Gebruik Platform.select() voor cross-platform compatibiliteit
+
+## 📊 **Performance Monitoring**
+
+### **Web Performance**
+- Lighthouse scores
+- Core Web Vitals
+- Bundle size analyse
+
+### **Mobile Performance**
+- React Native Performance Monitor
+- Flipper debugging
+- Expo DevTools
+
+## 🔒 **Security Checklist**
+
+- [ ] Environment variables zijn geheim
+- [ ] Supabase Row Level Security is actief
+- [ ] API rate limiting is geïmplementeerd
+- [ ] HTTPS is geforceerd
+- [ ] Content Security Policy is ingesteld
+
+## 📈 **Scaling**
+
+### **Web**
+- Netlify Functions voor serverless backend
+- CDN optimalisatie
+- Image optimization
+
+### **Mobile**
+- EAS Build voor cloud builds
+- OTA updates via Expo
+- Crash reporting met Sentry
 
 ## 🎯 **Volgende Stappen**
 
-1. **Deploy naar Netlify** (gebruik Optie 1)
-2. **Test alle functionaliteit** op de live site
-3. **Fix eventuele runtime problemen**
-4. **Optimaliseer voor productie**
-
-## 📞 **Support**
-
-Voor deploy problemen:
-- Check de Expo logs
-- Controleer Netlify build logs
-- Verifieer environment variables
+1. **Deploy naar Netlify** ✅
+2. **Test alle functionaliteiten** ✅
+3. **Monitor performance** ✅
+4. **Implementeer analytics** ✅
+5. **Setup monitoring** ✅

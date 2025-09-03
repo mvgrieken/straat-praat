@@ -1,6 +1,6 @@
 [build]
   # Build command (we'll use the Expo web server)
-  command = "echo 'Using Expo web server'"
+  command = "npx expo start --web --port 8888"
   
   # Publish directory (we'll use the Expo web output)
   publish = "web-build"
@@ -9,6 +9,7 @@
   [build.environment]
     NODE_VERSION = "18"
     NPM_VERSION = "8"
+    EXPO_PUBLIC_PLATFORM = "web"
 
 # Redirects for SPA routing
 [[redirects]]
@@ -30,6 +31,7 @@
   EXPO_PUBLIC_SUPABASE_URL = "https://trrsgvxoylhcudtiimvb.supabase.co"
   EXPO_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ"
 
+# Development environment
 [context.deploy-preview.environment]
   EXPO_PUBLIC_SUPABASE_URL = "https://trrsgvxoylhcudtiimvb.supabase.co"
   EXPO_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ"

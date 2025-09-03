@@ -9,7 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { EnvGate } from '@/components/EnvGate';
-import { useAuth } from '@/hooks/useAuth';
+import { AuthProvider } from '@/hooks/useAuth';
 import { useNotifications } from '@/hooks/useNotifications';
 import { SettingsProvider } from '@/hooks/useSettings';
 
