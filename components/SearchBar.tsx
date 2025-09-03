@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   TextInput,
@@ -22,12 +22,12 @@ interface SearchBarProps {
   autoFocus?: boolean;
 }
 
-export function SearchBar({ 
+export const SearchBar = React.memo(({ 
   onWordSelect, 
   onSearchChange,
   placeholder = "Zoek een slangwoord...",
   autoFocus = false 
-}: SearchBarProps) {
+}: SearchBarProps) => {
   const { user } = useAuth();
   const { settings } = useSettings();
   const isDark = settings.theme === 'dark';
@@ -53,13 +53,27 @@ export function SearchBar({
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const handleSearchChange = (text: string) => {
+  // Memoized styles for performance
+  const searchBarStyles = useMemo(() => ({
+    backgroundColor: isDark ? COLORS.gray[800] : COLORS.white,
+    borderWidth: 1,
+    borderColor: isDark ? COLORS.gray[700] : COLORS.gray[300],
+  }), [isDark]);
+
+  const resultsContainerStyles = useMemo(() => ({
+    backgroundColor: isDark ? COLORS.gray[800] : COLORS.white,
+    borderWidth: 1,
+    borderColor: isDark ? COLORS.gray[700] : COLORS.gray[200],
+  }), [isDark]);
+
+  // Memoized handlers
+  const handleSearchChange = useCallback((text: string) => {
     setSearchQuery(text);
     setShowResults(text.length >= 2);
     onSearchChange?.(text);
-  };
+  }, [onSearchChange]);
 
-  const handleWordSelect = (result: WordSearchResult) => {
+  const handleWordSelect = useCallback((result: WordSearchResult) => {
     setSearchQuery(result.slang_word);
     setShowResults(false);
     
@@ -69,15 +83,22 @@ export function SearchBar({
     }
     
     onWordSelect?.(result);
-  };
+  }, [user, onWordSelect]);
 
-  const clearSearch = () => {
+  const clearSearch = useCallback(() => {
     setSearchQuery('');
     setShowResults(false);
     onSearchChange?.('');
-  };
+  }, [onSearchChange]);
 
-  const renderSearchResult = ({ item }: { item: WordSearchResult }) => (
+  const handleFocus = useCallback(() => {
+    if (searchQuery.length >= 2) {
+      setShowResults(true);
+    }
+  }, [searchQuery.length]);
+
+  // Memoized render functions
+  const renderSearchResult = useCallback(({ item }: { item: WordSearchResult }) => (
     <Pressable
       onPress={() => handleWordSelect(item)}
       className="p-4 border-b border-gray-200"
@@ -122,9 +143,7 @@ export function SearchBar({
           {item.match_type !== 'exact' && (
             <View className="bg-blue-100 rounded-full px-2 py-1 mr-2">
               <Text className="text-blue-700 text-xs font-medium">
-                {item.match_type === 'phonetic' ? '🔊' : 
-                 item.match_type === 'fuzzy' ? '~' : 
-                 item.match_type.includes('variant') ? 'var' : ''}
+                {getMatchTypeLabel(item.match_type)}
               </Text>
             </View>
           )}
@@ -134,17 +153,23 @@ export function SearchBar({
         </View>
       </View>
     </Pressable>
-  );
+  ), [isDark, settings.fontSize, handleWordSelect]);
+
+  // Helper function for match type labels
+  const getMatchTypeLabel = useCallback((matchType: string) => {
+    const labels: Record<string, string> = {
+      phonetic: '🔊',
+      fuzzy: '~',
+      variant: 'var'
+    };
+    return labels[matchType] || '';
+  }, []);
 
   return (
     <View className="relative">
       <View 
         className="flex-row items-center rounded-2xl px-4 py-3 shadow-sm"
-        style={{
-          backgroundColor: isDark ? COLORS.gray[800] : COLORS.white,
-          borderWidth: 1,
-          borderColor: isDark ? COLORS.gray[700] : COLORS.gray[300],
-        }}
+        style={searchBarStyles}
       >
         <Ionicons 
           name="search-outline" 
@@ -163,11 +188,7 @@ export function SearchBar({
             color: isDark ? COLORS.white : COLORS.gray[900],
             fontSize: settings.fontSize === 'large' ? 18 : 16,
           }}
-          onFocus={() => {
-            if (searchQuery.length >= 2) {
-              setShowResults(true);
-            }
-          }}
+          onFocus={handleFocus}
           returnKeyType="search"
         />
         {searchQuery.length > 0 && (
@@ -184,11 +205,7 @@ export function SearchBar({
       {showResults && (
         <View 
           className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-lg z-10 max-h-80"
-          style={{
-            backgroundColor: isDark ? COLORS.gray[800] : COLORS.white,
-            borderWidth: 1,
-            borderColor: isDark ? COLORS.gray[700] : COLORS.gray[200],
-          }}
+          style={resultsContainerStyles}
         >
           {isLoading ? (
             <View className="p-4">
@@ -210,10 +227,15 @@ export function SearchBar({
               renderItem={renderSearchResult}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={10}
+              windowSize={10}
             />
           )}
         </View>
       )}
     </View>
   );
-}
+});
+
+SearchBar.displayName = 'SearchBar';

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { View, Text, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
@@ -37,28 +37,30 @@ export default function HomeScreen() {
     },
   });
 
-  const handleRefresh = () => {
+  // Memoized handlers for performance
+  const handleRefresh = useCallback(() => {
     refetch();
-  };
+  }, [refetch]);
 
-  const handleWordPress = (wordId: string) => {
+  const handleWordPress = useCallback((wordId: string) => {
     // Navigate to word detail or show in modal
     router.push(`/word/${wordId}`);
-  };
+  }, []);
 
-  const handleTranslatePress = () => router.push('/translate');
-  const handleQuizPress = () => router.push('/quiz');
-  const handleFavoritesPress = () => router.push('/profile?tab=favorites');
-  const handleAchievementsPress = () => router.push('/profile?tab=achievements');
+  const handleTranslatePress = useCallback(() => router.push('/translate'), []);
+  const handleQuizPress = useCallback(() => router.push('/quiz'), []);
+  const handleFavoritesPress = useCallback(() => router.push('/profile?tab=favorites'), []);
+  const handleAchievementsPress = useCallback(() => router.push('/profile?tab=achievements'), []);
 
-  const getGreeting = () => {
+  // Memoized computed values
+  const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Goedemorgen';
     if (hour < 18) return 'Goedemiddag';
     return 'Goedenavond';
-  };
+  }, []);
 
-  const quickActions = [
+  const quickActions = useMemo(() => [
     {
       id: 'translate',
       title: 'Vertalen',
@@ -87,15 +89,31 @@ export default function HomeScreen() {
       color: COLORS.warning[500],
       onPress: handleAchievementsPress,
     },
-  ];
+  ], [handleTranslatePress, handleQuizPress, handleFavoritesPress, handleAchievementsPress]);
+
+  // Memoized styles
+  const containerStyle = useMemo(() => ({
+    flex: 1,
+    backgroundColor: isDark ? COLORS.gray[900] : COLORS.gray[50]
+  }), [isDark]);
+
+  const titleStyle = useMemo(() => ({
+    color: isDark ? COLORS.white : COLORS.gray[900],
+    fontSize: settings.fontSize === 'large' ? 28 : 24,
+  }), [isDark, settings.fontSize]);
+
+  const subtitleStyle = useMemo(() => ({
+    color: isDark ? COLORS.gray[300] : COLORS.gray[600],
+    fontSize: settings.fontSize === 'large' ? 18 : 16,
+  }), [isDark, settings.fontSize]);
+
+  const sectionTitleStyle = useMemo(() => ({
+    color: isDark ? COLORS.white : COLORS.gray[900],
+    fontSize: settings.fontSize === 'large' ? 20 : 18,
+  }), [isDark, settings.fontSize]);
 
   return (
-    <SafeAreaView 
-      style={{ 
-        flex: 1, 
-        backgroundColor: isDark ? COLORS.gray[900] : COLORS.gray[50] 
-      }}
-    >
+    <SafeAreaView style={containerStyle}>
       <ScrollView
         className="flex-1"
         refreshControl={
@@ -111,19 +129,13 @@ export default function HomeScreen() {
         <View className="px-6 pt-4 pb-6">
           <Text 
             className="text-2xl font-bold mb-2"
-            style={{ 
-              color: isDark ? COLORS.white : COLORS.gray[900],
-              fontSize: settings.fontSize === 'large' ? 28 : 24,
-            }}
+            style={titleStyle}
           >
-            {getGreeting()}{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ''}!
+            {greeting}{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ''}!
           </Text>
           <Text 
             className="text-base opacity-70"
-            style={{ 
-              color: isDark ? COLORS.gray[300] : COLORS.gray[600],
-              fontSize: settings.fontSize === 'large' ? 18 : 16,
-            }}
+            style={subtitleStyle}
           >
             Welkom bij Straat-Praat
           </Text>
@@ -145,10 +157,7 @@ export default function HomeScreen() {
         <View className="px-6 mb-6">
           <Text 
             className="text-lg font-semibold mb-4"
-            style={{ 
-              color: isDark ? COLORS.white : COLORS.gray[900],
-              fontSize: settings.fontSize === 'large' ? 20 : 18,
-            }}
+            style={sectionTitleStyle}
           >
             Snelle acties
           </Text>

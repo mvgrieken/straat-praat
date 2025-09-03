@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import TextField from '@/components/forms/TextField';
 import CheckboxField from '@/components/forms/CheckboxField';
 import { loginSchema, LoginFormData } from '@/src/lib/validations/auth';
+import { getAuthErrorMessage } from '@/utils/errorMessages';
 
 interface AccountStatus {
   locked: boolean;
@@ -61,21 +62,7 @@ export default function LoginScreen() {
     } catch (error) {
       console.error('Login error:', error);
       
-      let errorMessage = 'Er is een onbekende fout opgetreden';
-      
-      if (error instanceof Error) {
-        if (error.message.includes('Invalid login credentials')) {
-          errorMessage = 'Onjuiste e-mail of wachtwoord';
-        } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = 'Bevestig eerst je e-mailadres via de link in je e-mail';
-        } else if (error.message.includes('Too many requests')) {
-          errorMessage = 'Te veel inlogpogingen. Probeer het later opnieuw';
-        } else if (error.message.includes('Account is locked')) {
-          errorMessage = 'Je account is geblokkeerd vanwege te veel mislukte inlogpogingen.';
-        } else {
-          errorMessage = error.message;
-        }
-      }
+      const errorMessage = getAuthErrorMessage(error);
       
       // Update login attempts display
       if (accountStatus) {

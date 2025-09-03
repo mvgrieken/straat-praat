@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 
 import { validateEnvironment } from '@/src/env';
 import type { Database } from '@/types/supabase';
+import { withRateLimit, RATE_LIMITS } from '@/utils/rateLimiter';
 
 // Import platform-specific secure storage adapter
 import StorageAdapter from './storage/secureStoreAdapter';
