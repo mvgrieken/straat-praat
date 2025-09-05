@@ -55,9 +55,13 @@ export default function SystemHealthMonitor({ visible, onClose }: SystemHealthMo
     const securityMonitor = SecurityMonitor.getInstance();
     
     if (monitoringStatus?.isMonitoring) {
-      securityMonitor.stopMonitoring();
+      securityMonitor.stopMonitoring().catch(error => {
+        console.warn('Failed to stop security monitoring:', error);
+      });
     } else {
-      securityMonitor.startMonitoring();
+      securityMonitor.startMonitoring().catch(error => {
+        console.warn('Failed to start security monitoring:', error);
+      });
     }
     
     loadMonitoringStatus();

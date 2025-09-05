@@ -94,7 +94,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       const securityMonitor = SecurityMonitor.getInstance();
-      securityMonitor.stopMonitoring();
+      securityMonitor.stopMonitoring().catch(error => {
+        console.warn('Failed to stop security monitoring:', error);
+      });
     };
   }, []);
 

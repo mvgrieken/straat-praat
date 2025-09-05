@@ -68,30 +68,37 @@ export class SecurityMonitor {
   /**
    * Start monitoring
    */
-  startMonitoring(): void {
-    if (this.isMonitoring) {
-      console.log('Monitoring is already active');
-      return;
-    }
+  startMonitoring(): Promise<void> {
+    return new Promise((resolve) => {
+      if (this.isMonitoring) {
+        console.log('Monitoring is already active');
+        resolve();
+        return;
+      }
 
-    this.isMonitoring = true;
-    this.monitoringInterval = setInterval(() => {
-      this.performHealthCheck();
-    }, this.checkInterval);
+      this.isMonitoring = true;
+      this.monitoringInterval = setInterval(() => {
+        this.performHealthCheck();
+      }, this.checkInterval);
 
-    console.log('Security monitoring started');
+      console.log('Security monitoring started');
+      resolve();
+    });
   }
 
   /**
    * Stop monitoring
    */
-  stopMonitoring(): void {
-    if (this.monitoringInterval) {
-      clearInterval(this.monitoringInterval);
-      this.monitoringInterval = undefined;
-    }
-    this.isMonitoring = false;
-    console.log('Security monitoring stopped');
+  stopMonitoring(): Promise<void> {
+    return new Promise((resolve) => {
+      if (this.monitoringInterval) {
+        clearInterval(this.monitoringInterval);
+        this.monitoringInterval = undefined;
+      }
+      this.isMonitoring = false;
+      console.log('Security monitoring stopped');
+      resolve();
+    });
   }
 
   /**
