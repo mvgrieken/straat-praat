@@ -12,4 +12,7 @@ config.resolver.alias = {
   'react-dom': require.resolve('react-dom'),
 };
 
+// Add web-specific plugins
+config.resolver.sourceExts = [...config.resolver.sourceExts, 'web.js', 'web.ts', 'web.tsx'];
+
 module.exports = config;
