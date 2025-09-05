@@ -65,7 +65,7 @@ export class EnvGate extends React.Component<EnvGateProps, EnvGateState> {
       );
     }
 
-    return <>{this.props.children}</>;
+    return this.props.children;
   }
 }
 

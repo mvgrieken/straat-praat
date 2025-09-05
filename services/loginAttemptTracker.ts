@@ -1,6 +1,7 @@
+import { LoginAttempt, LoginAttemptConfig } from '@/types';
+
 import { AuthAnalyticsService } from './authAnalyticsService';
 import { supabase } from './supabase';
-import { LoginAttempt, LoginAttemptConfig } from '@/types';
 
 export interface LoginAttemptResult {
   success: boolean;

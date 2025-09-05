@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Modal, TextInput, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Modal, ActivityIndicator } from 'react-native';
 
-import { useAuth } from '@/hooks/useAuth';
 import { MFAService } from '@/services/mfaService';
-import { COLORS } from '@/constants';
 
 interface MFAVerificationModalProps {
   visible: boolean;

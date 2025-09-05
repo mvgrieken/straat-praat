@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, Modal, StyleSheet, TextInput, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, Alert, Modal, StyleSheet, ActivityIndicator, Image } from 'react-native';
 
 import { useAuth } from '@/hooks/useAuth';
 import { MFAService } from '@/services/mfaService';

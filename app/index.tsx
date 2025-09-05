@@ -1,9 +1,9 @@
+import { router } from 'expo-router';
 import React, { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { router } from 'expo-router';
 
-import { useAuth } from '@/hooks/useAuth';
 import { COLORS } from '@/constants';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function IndexPage() {
   const { session, loading } = useAuth();

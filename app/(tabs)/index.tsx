@@ -1,17 +1,17 @@
+import { useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import React, { useMemo, useCallback } from 'react';
 import { View, Text, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useQuery } from '@tanstack/react-query';
-import { router } from 'expo-router';
 
+import { ProgressOverview } from '@/components/ProgressOverview';
+import { QuickActionCard } from '@/components/QuickActionCard';
+import { RecentWords } from '@/components/RecentWords';
+import { StreakCard } from '@/components/StreakCard';
+import { WordOfTheDayCard } from '@/components/WordOfTheDayCard';
+import { COLORS } from '@/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
-import { COLORS } from '@/constants';
-import { WordOfTheDayCard } from '@/components/WordOfTheDayCard';
-import { StreakCard } from '@/components/StreakCard';
-import { QuickActionCard } from '@/components/QuickActionCard';
-import { ProgressOverview } from '@/components/ProgressOverview';
-import { RecentWords } from '@/components/RecentWords';
 
 export default function HomeScreen() {
   const { user } = useAuth();

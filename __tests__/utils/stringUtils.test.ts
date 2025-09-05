@@ -5,7 +5,7 @@ export const capitalizeFirstLetter = (str: string): string => {
 
 export const truncateString = (str: string, maxLength: number): string => {
   if (str.length <= maxLength) return str;
-  return str.slice(0, maxLength) + '...';
+  return `${str.slice(0, maxLength)  }...`;
 };
 
 export const isValidEmail = (email: string): boolean => {

@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Modal, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
-import { useAuth } from '@/hooks/useAuth';
 import { MFAService } from '@/services/mfaService';
-import { COLORS } from '@/constants';
 
 interface BackupCodesManagerProps {
   visible: boolean;
@@ -154,7 +151,7 @@ export default function BackupCodesManager({ visible, onClose }: BackupCodesMana
           <Text style={styles.instructionsTitle}>Hoe te gebruiken:</Text>
           <Text style={styles.instructionsText}>
             1. Probeer eerst in te loggen met je normale wachtwoord{'\n'}
-            2. Als MFA wordt gevraagd, klik op "Backup code gebruiken"{'\n'}
+            2. Als MFA wordt gevraagd, klik op &quot;Backup code gebruiken&quot;{'\n'}
             3. Voer een van de bovenstaande codes in{'\n'}
             4. Elke code kan maar één keer gebruikt worden
           </Text>

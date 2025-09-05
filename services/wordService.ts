@@ -1,5 +1,6 @@
-import { supabase } from './supabase';
 import { Word, WordSearchResult, UserProgress } from '@/types';
+
+import { supabase } from './supabase';
 
 export class WordService {
   /**

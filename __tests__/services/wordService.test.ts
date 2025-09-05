@@ -1,5 +1,5 @@
-import { WordService } from '@/services/wordService';
 import { supabase } from '@/services/supabase';
+import { WordService } from '@/services/wordService';
 
 // Mock Supabase
 jest.mock('@/services/supabase', () => ({

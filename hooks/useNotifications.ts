@@ -1,4 +1,3 @@
-﻿import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
@@ -13,7 +12,7 @@ export interface NotificationData {
   type: string;
   title: string;
   body: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 export function useNotifications() {
@@ -27,7 +26,6 @@ export function useNotifications() {
     registerForPushNotificationsAsync().then(token => {
       if (token) {
         setExpoPushToken(token);
-        console.log('Push token registered successfully:', token);
       }
     });
 
@@ -36,7 +34,6 @@ export function useNotifications() {
     });
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log('Notification response received:', response);
       handleNotificationResponse(response);
     });
 
@@ -74,37 +71,26 @@ export function useNotifications() {
         }
         
         if (finalStatus !== 'granted') {
-          console.warn('Failed to get push token for push notification!');
           return;
         }
 
         // Get the token
         const projectId = Constants.expoConfig?.extra?.eas?.projectId;
         if (!projectId) {
-          console.warn('No project ID found in app config');
           return;
         }
 
         token = await Notifications.getExpoPushTokenAsync({
-          projectId: projectId,
+          projectId,
         });
         
-        console.log('Push token generated:', token.data);
       } catch (error) {
-        console.error('Error getting push token:', error);
-        
         // Handle VAPID public key error specifically
         if (error instanceof Error && error.message.includes('vapidPublicKey')) {
-          console.warn('VAPID public key not configured for web push notifications');
-          // Don't throw the error, just log it and continue
+          // VAPID public key not configured for web push notifications
           return;
         }
-        
-        // For other errors, we might want to handle them differently
-        console.error('Unexpected error during push token registration:', error);
       }
-    } else {
-      console.log('Must use physical device for Push Notifications');
     }
 
     return token?.data;
@@ -117,32 +103,27 @@ export function useNotifications() {
     switch (data?.type) {
       case NOTIFICATION_TYPES.WORD_OF_DAY:
         // Navigate to word of the day
-        console.log('Navigate to word of the day');
         break;
       case NOTIFICATION_TYPES.QUIZ_REMINDER:
         // Navigate to quiz
-        console.log('Navigate to quiz');
         break;
       case NOTIFICATION_TYPES.STREAK_REMINDER:
         // Navigate to profile
-        console.log('Navigate to profile');
         break;
       case NOTIFICATION_TYPES.ACHIEVEMENT_UNLOCKED:
         // Navigate to achievements
-        console.log('Navigate to achievements');
         break;
       case NOTIFICATION_TYPES.COMMUNITY_UPDATE:
         // Navigate to community
-        console.log('Navigate to community');
         break;
       default:
-        console.log('Unknown notification type:', data?.type);
+        // Unknown notification type
+        break;
     }
   };
 
   const sendLocalNotification = async (notificationData: NotificationData) => {
     if (!settings.notificationsEnabled) {
-      console.log('Notifications disabled in settings');
       return;
     }
 
@@ -156,7 +137,7 @@ export function useNotifications() {
         trigger: null, // Send immediately
       });
     } catch (error) {
-      console.error('Error sending local notification:', error);
+      // Error sending local notification
     }
   };
 
@@ -165,7 +146,6 @@ export function useNotifications() {
     trigger: Notifications.NotificationTriggerInput
   ) => {
     if (!settings.notificationsEnabled) {
-      console.log('Notifications disabled in settings');
       return;
     }
 
@@ -179,16 +159,15 @@ export function useNotifications() {
         trigger,
       });
     } catch (error) {
-      console.error('Error scheduling notification:', error);
+      // Error scheduling notification
     }
   };
 
   const cancelAllNotifications = async () => {
     try {
       await Notifications.cancelAllScheduledNotificationsAsync();
-      console.log('All notifications cancelled');
     } catch (error) {
-      console.error('Error cancelling notifications:', error);
+      // Error cancelling notifications
     }
   };
 

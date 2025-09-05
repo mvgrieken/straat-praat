@@ -1,6 +1,7 @@
-import { supabase } from './supabase';
-import { NotificationService } from './notificationService';
 import { Achievement, UserAchievement, UserStats, LevelInfo } from '@/types';
+
+import { NotificationService } from './notificationService';
+import { supabase } from './supabase';
 
 export interface UserStats {
   totalWordsLearned: number;

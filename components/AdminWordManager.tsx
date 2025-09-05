@@ -13,7 +13,7 @@ import {
 
 import { supabase } from '@/services/supabase';
 import { WordService } from '@/services/wordService';
-import { Word, ApiResponse } from '@/types';
+import { Word } from '@/types';
 
 interface WordFormData {
   slang_word: string;

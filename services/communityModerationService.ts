@@ -1,5 +1,6 @@
-import { supabase } from './supabase';
 import { CommunityContribution, ModerationResult, ModerationStats } from '@/types';
+
+import { supabase } from './supabase';
 
 export interface ModerationAction {
   contributionId: string;

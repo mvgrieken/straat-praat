@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, ScrollView, StyleSheet, Modal, TextInput } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, Alert, ScrollView, StyleSheet, TextInput } from 'react-native';
 
 import { useAuth } from '@/hooks/useAuth';
-import { CommunityModerationService } from '@/services/communityModerationService';
 import { AITranslationService } from '@/services/aiTranslationService';
+import { CommunityModerationService } from '@/services/communityModerationService';
 import { CommunityContribution, ModerationStats } from '@/types';
 
 interface ContentManagementInterfaceProps {

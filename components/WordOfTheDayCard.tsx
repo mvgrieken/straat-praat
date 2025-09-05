@@ -23,6 +23,15 @@ export function WordOfTheDayCard({ onWordPress }: WordOfTheDayCardProps) {
   const [sound, setSound] = React.useState<Audio.Sound>();
   const [isPlaying, setIsPlaying] = React.useState(false);
 
+  // Cleanup sound effect
+  React.useEffect(() => {
+    return sound
+      ? () => {
+          sound.unloadAsync();
+        }
+      : undefined;
+  }, [sound]);
+
   // Fetch word of the day
   const { data: wordOfDay, isLoading } = useQuery({
     queryKey: ['word-of-day'],
@@ -104,14 +113,6 @@ export function WordOfTheDayCard({ onWordPress }: WordOfTheDayCardProps) {
   if (!wordOfDay) {
     return null;
   }
-
-  React.useEffect(() => {
-    return sound
-      ? () => {
-          sound.unloadAsync();
-        }
-      : undefined;
-  }, [sound]);
 
   return (
     <TouchableOpacity onPress={handleWordPress} activeOpacity={0.9}>

@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, Modal, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
-import { useAuth } from '@/hooks/useAuth';
 import { SecurityReportingService, SecurityReport } from '@/services/securityReportingService';
-import { COLORS } from '@/constants';
 
 interface SecurityReportsManagerProps {
   visible: boolean;

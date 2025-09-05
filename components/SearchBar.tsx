@@ -26,7 +26,7 @@ export const SearchBar = React.memo(({
   onWordSelect, 
   onSearchChange,
   placeholder = "Zoek een slangwoord...",
-  autoFocus = false 
+  autoFocus: _autoFocus = false 
 }: SearchBarProps) => {
   const { user } = useAuth();
   const { settings } = useSettings();
@@ -135,7 +135,7 @@ export const SearchBar = React.memo(({
                 fontSize: settings.fontSize === 'large' ? 14 : 12 
               }}
             >
-              "{item.example_sentence}"
+              &quot;{item.example_sentence}&quot;
             </Text>
           )}
         </View>
@@ -182,7 +182,6 @@ export const SearchBar = React.memo(({
           onChangeText={handleSearchChange}
           placeholder={placeholder}
           placeholderTextColor={isDark ? COLORS.gray[500] : COLORS.gray[400]}
-          autoFocus={autoFocus}
           className="flex-1"
           style={{
             color: isDark ? COLORS.white : COLORS.gray[900],

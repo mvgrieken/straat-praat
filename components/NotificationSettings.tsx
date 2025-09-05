@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Switch, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { View, Text, Switch, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 
 import { useSettings } from '@/hooks/useSettings';
 import { NotificationService } from '@/services/notificationService';
@@ -12,7 +12,7 @@ interface NotificationSettingsScreenProps {
   onClose?: () => void;
 }
 
-export default function NotificationSettingsScreen({ onClose }: NotificationSettingsScreenProps) {
+export default function NotificationSettingsScreen({ onClose: _onClose }: NotificationSettingsScreenProps) {
   const { settings, updateSettings } = useSettings();
   const [loading, setLoading] = useState(false);
 

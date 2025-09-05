@@ -1,6 +1,7 @@
+import { SecurityEvent, EventType, EventSeverity } from '@/types';
+
 import { AuthAnalyticsService } from './authAnalyticsService';
 import { supabase } from './supabase';
-import { SecurityEvent, EventType, EventSeverity } from '@/types';
 
 export interface SecurityEvent {
   eventType: SecurityEventType;

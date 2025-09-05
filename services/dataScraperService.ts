@@ -1,5 +1,6 @@
-import { supabase } from './supabase';
 import { ScrapedContent, ScrapingSource, ScrapingConfig } from '@/types';
+
+import { supabase } from './supabase';
 
 export interface ScrapedWord {
   word: string;
@@ -36,12 +37,12 @@ interface ScrapingStats {
   pendingReview: number;
   approved: number;
   rejected: number;
-  sourceStats: Array<{
+  sourceStats: {
     source: string;
     total: number;
     approved: number;
     rejected: number;
-  }>;
+  }[];
 }
 
 export class DataScraperService {

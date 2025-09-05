@@ -1,6 +1,6 @@
 import { MFAService } from '@/services/mfaService';
-import { supabase } from '@/services/supabase';
 import { SecurityEventLogger } from '@/services/securityEventLogger';
+import { supabase } from '@/services/supabase';
 
 // Mock dependencies
 jest.mock('@/services/supabase');

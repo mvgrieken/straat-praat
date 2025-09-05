@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
-import { router } from 'expo-router';
-import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { router, Link } from 'expo-router';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { View, Text, TouchableOpacity, Alert, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 
-import { useAuth } from '@/hooks/useAuth';
-import { TextField } from '@/components/forms/TextField';
 import { CheckboxField } from '@/components/forms/CheckboxField';
+import { TextField } from '@/components/forms/TextField';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
+import { useAuth } from '@/hooks/useAuth';
 import { signupSchema, SignupFormData } from '@/src/lib/validations/auth';
 
 export default function SignupScreen() {
@@ -31,42 +31,26 @@ export default function SignupScreen() {
   });
 
   const onSubmit = async (data: SignupFormData) => {
-    console.log('onSubmit called with data:', data);
     if (isLoading) {
-      console.log('Already loading, returning early');
       return;
     }
     
     try {
-      console.log('Setting loading to true');
       setIsLoading(true);
-      console.log('Calling signUp with:', { email: data.email, password: data.password, displayName: data.displayName });
       const result = await signUp(data.email, data.password, data.displayName);
-      console.log('SignUp result:', result);
-      console.log('SignUp result.user:', result.user);
-      console.log('SignUp result.session:', result.session);
-      console.log('SignUp result.user?.email_confirmed_at:', result.user?.email_confirmed_at);
       
       if (result.user && !result.session) {
-        console.log('Email verification required, attempting direct sign in');
-        
         // Try to sign in directly after registration (for development)
         try {
-          console.log('Attempting direct sign in...');
           const signInResult = await signIn(data.email, data.password);
-          console.log('Direct sign in result:', signInResult);
           
           if (signInResult.session) {
-            console.log('Direct sign in successful, navigating to tabs');
             router.replace('/(tabs)');
             return;
           }
         } catch (signInError) {
-          console.log('Direct sign in failed:', signInError);
           // Fall back to email verification flow
         }
-        
-        console.log('Email verification required');
         // Email verification required
         Alert.alert(
           'Bevestig je e-mailadres',
@@ -79,16 +63,13 @@ export default function SignupScreen() {
           ]
         );
       } else if (result.user && result.session) {
-        console.log('Direct login successful, navigating to tabs');
         // Direct login (if email confirmation is disabled)
         router.replace('/(tabs)');
       } else {
-        console.log('Unexpected result structure:', result);
         Alert.alert('Registratie voltooid', 'Je account is aangemaakt. Je kunt nu inloggen.');
         router.replace('/auth/login');
       }
     } catch (error) {
-      console.error('Signup error:', error);
       
       let errorMessage = 'Er is een onbekende fout opgetreden';
       
@@ -106,7 +87,6 @@ export default function SignupScreen() {
       
       Alert.alert('Registratie mislukt', errorMessage);
     } finally {
-      console.log('Setting loading to false');
       setIsLoading(false);
     }
   };

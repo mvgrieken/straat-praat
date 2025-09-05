@@ -1,6 +1,6 @@
-import { supabase } from './supabase';
 import { TranslationResult, TranslationSource, Language } from '@/types';
 
+import { supabase } from './supabase';
 import { WordService } from './wordService';
 
 

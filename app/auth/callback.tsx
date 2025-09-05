@@ -1,13 +1,12 @@
-import React, { useEffect } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 
 import { useAuth } from '@/hooks/useAuth';
-import { COLORS } from '@/constants';
 import { supabase } from '@/services/supabase';
 
 export default function AuthCallbackScreen() {
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const { access_token, refresh_token, type } = useLocalSearchParams();
 

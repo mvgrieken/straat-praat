@@ -1,15 +1,14 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Session, User } from '@supabase/supabase-js';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
-import { supabase } from '@/services/supabase';
 import { AuthAnalyticsService } from '@/services/authAnalyticsService';
-import { SessionManager } from '@/services/sessionManager';
 import { LoginAttemptTracker } from '@/services/loginAttemptTracker';
-import { SecurityMonitor } from '@/services/securityMonitor';
 import { MFAService } from '@/services/mfaService';
+import { SecurityMonitor } from '@/services/securityMonitor';
 import { SecurityReportingService } from '@/services/securityReportingService';
+import { SessionManager } from '@/services/sessionManager';
+import { supabase } from '@/services/supabase';
 import { PlatformUtils } from '@/utils/platformUtils';
 
 const STORAGE_KEYS = {
@@ -29,41 +28,41 @@ interface AuthContextType {
   
   // Core authentication methods
   /** Sign in with email and password */
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   /** Sign up with email, password and full name */
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   /** Sign out current user */
   signOut: () => Promise<void>;
   /** Reset password for email */
-  resetPassword: (email: string) => Promise<{ error: any }>;
+  resetPassword: (email: string) => Promise<{ error: Error | null }>;
   /** Update current user password */
-  updatePassword: (password: string) => Promise<{ error: any }>;
+  updatePassword: (password: string) => Promise<{ error: Error | null }>;
   
   // Enhanced security methods
   /** Get number of failed login attempts */
   getLoginAttempts: () => Promise<number>;
   /** Get account status (locked/unlocked) */
-  getAccountStatus: (email: string) => Promise<any>;
+  getAccountStatus: (email: string) => Promise<{ locked: boolean; attempts: number }>;
   /** Unlock locked account */
   unlockAccount: (email: string) => Promise<boolean>;
   /** Get security health metrics */
-  getSecurityHealth: () => Promise<any>;
+  getSecurityHealth: () => Promise<{ score: number; issues: string[] }>;
   
   // MFA methods
   /** Check if MFA is enabled for user */
   isMFAEnabled: (userId: string) => Promise<boolean>;
   /** Setup MFA for user */
-  setupMFA: (userId: string, email: string) => Promise<any>;
+  setupMFA: (userId: string, email: string) => Promise<{ secret: string; qrCode: string }>;
   /** Verify MFA code */
-  verifyMFACode: (userId: string, email: string, code: string) => Promise<any>;
+  verifyMFACode: (userId: string, email: string, code: string) => Promise<{ success: boolean; backupCodes?: string[] }>;
   /** Verify backup code */
-  verifyBackupCode: (userId: string, email: string, backupCode: string) => Promise<any>;
+  verifyBackupCode: (userId: string, email: string, backupCode: string) => Promise<{ success: boolean }>;
   
   // Security reporting methods
   /** Generate security report for date range */
-  generateSecurityReport: (startDate: Date, endDate: Date) => Promise<any>;
+  generateSecurityReport: (startDate: Date, endDate: Date) => Promise<{ id: string; type: string; data: unknown }>;
   /** Get saved security reports */
-  getSecurityReports: (type?: string, limit?: number) => Promise<any[]>;
+  getSecurityReports: (type?: string, limit?: number) => Promise<{ id: string; type: string; data: unknown }[]>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -240,7 +239,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /**
    * Cache user profile data locally
    */
-  const cacheUserProfile = useCallback(async (userData: any) => {
+  const cacheUserProfile = useCallback(async (userData: User) => {
     try {
       if (PlatformUtils.isWeb()) {
         localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(userData));
@@ -386,7 +385,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return await AuthAnalyticsService.getFailedLoginAttempts(user.id, 24);
   }, [user?.email]);
 
-  const getAccountStatus = useCallback(async (email: string): Promise<any> => {
+  const getAccountStatus = useCallback(async (email: string): Promise<{ locked: boolean; attempts: number }> => {
     return await LoginAttemptTracker.getAccountStatus(email);
   }, []);
 
@@ -394,7 +393,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return await LoginAttemptTracker.unlockAccount(email);
   }, []);
 
-  const getSecurityHealth = useCallback(async (): Promise<any> => {
+  const getSecurityHealth = useCallback(async (): Promise<{ score: number; issues: string[] }> => {
     const securityMonitor = SecurityMonitor.getInstance();
     return await securityMonitor.getSecurityMetrics();
   }, []);
@@ -404,24 +403,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return await MFAService.isMFAEnabled(userId);
   }, []);
 
-  const setupMFA = useCallback(async (userId: string, email: string): Promise<any> => {
+  const setupMFA = useCallback(async (userId: string, email: string): Promise<{ secret: string; qrCode: string }> => {
     return await MFAService.setupMFA(userId, email);
   }, []);
 
-  const verifyMFACode = useCallback(async (userId: string, email: string, code: string): Promise<any> => {
+  const verifyMFACode = useCallback(async (userId: string, email: string, code: string): Promise<{ success: boolean; backupCodes?: string[] }> => {
     return await MFAService.verifyMFACode(userId, email, code);
   }, []);
 
-  const verifyBackupCode = useCallback(async (userId: string, email: string, backupCode: string): Promise<any> => {
+  const verifyBackupCode = useCallback(async (userId: string, email: string, backupCode: string): Promise<{ success: boolean }> => {
     return await MFAService.verifyBackupCode(userId, email, backupCode);
   }, []);
 
   // Security reporting methods
-  const generateSecurityReport = useCallback(async (startDate: Date, endDate: Date): Promise<any> => {
+  const generateSecurityReport = useCallback(async (startDate: Date, endDate: Date): Promise<{ id: string; type: string; data: unknown }> => {
     return await SecurityReportingService.generateComprehensiveReport(startDate, endDate);
   }, []);
 
-  const getSecurityReports = useCallback(async (type?: string, limit?: number): Promise<any[]> => {
+  const getSecurityReports = useCallback(async (type?: string, limit?: number): Promise<{ id: string; type: string; data: unknown }[]> => {
     return await SecurityReportingService.getSavedReports(type, limit);
   }, []);
 
@@ -466,7 +465,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     getSecurityReports,
   ]);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return React.createElement(AuthContext.Provider, { value }, children);
 }
 
 /**

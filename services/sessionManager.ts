@@ -1,5 +1,6 @@
-import { supabase } from './supabase';
 import { Session, SessionConfig } from '@/types';
+
+import { supabase } from './supabase';
 
 export interface SessionValidationResult {
   isValid: boolean;

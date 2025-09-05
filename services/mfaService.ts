@@ -1,6 +1,7 @@
+import { MFASetupResult, MFAVerificationResult, BackupCode } from '@/types';
+
 import { SecurityEventLogger } from './securityEventLogger';
 import { supabase } from './supabase';
-import { MFASetupResult, MFAVerificationResult, BackupCode } from '@/types';
 
 export interface MFASetupResult {
   success: boolean;

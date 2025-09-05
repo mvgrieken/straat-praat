@@ -1,7 +1,7 @@
+import { AlertingService } from '@/services/alertingService';
+import { SecurityEventLogger } from '@/services/securityEventLogger';
 import { SecurityMonitor } from '@/services/securityMonitor';
 import { supabase } from '@/services/supabase';
-import { SecurityEventLogger } from '@/services/securityEventLogger';
-import { AlertingService } from '@/services/alertingService';
 
 // Mock dependencies
 jest.mock('@/services/supabase');

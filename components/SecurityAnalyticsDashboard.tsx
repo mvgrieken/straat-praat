@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, RefreshControl, Modal } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, RefreshControl, Modal } from 'react-native';
 
 import { useAuth } from '@/hooks/useAuth';
 import { AuthAnalyticsService } from '@/services/authAnalyticsService';
-import { COLORS } from '@/constants';
 import { SecurityMonitor } from '@/services/securityMonitor';
 
 import SecurityReportsManager from './SecurityReportsManager';
@@ -51,7 +49,7 @@ export default function SecurityAnalyticsDashboard() {
       const systemMetrics = await AuthAnalyticsService.getSystemAuthMetrics(7);
       
       // Load user-specific metrics
-      const userStats = await AuthAnalyticsService.getLoginStats(user.id, 7);
+      const _userStats = await AuthAnalyticsService.getLoginStats(user.id, 7);
       
       // Load security health using new instance-based approach
       const securityMonitor = SecurityMonitor.getInstance();

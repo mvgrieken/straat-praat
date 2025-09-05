@@ -230,7 +230,7 @@ export function RecentWords() {
                     fontSize: settings.fontSize === 'large' ? 14 : 12,
                   }}
                 >
-                  "{word.example}"
+                  &quot;{word.example}&quot;
                 </Text>
               </View>
             )}
