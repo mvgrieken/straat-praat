@@ -18,7 +18,7 @@ try {
 
   // Run expo export in development mode for better error messages
   console.log('📦 Running expo export in development mode...');
-  execSync('NODE_ENV=development npx expo export --platform web --clear', { stdio: 'inherit' });
+  execSync('NODE_ENV=development EXPO_PUBLIC_DEV=true npx expo export --platform web --clear', { stdio: 'inherit' });
 
   // Fix React global
   console.log('🔧 Adding React global script...');

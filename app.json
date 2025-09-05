@@ -47,6 +47,9 @@
       "output": "static",
       "favicon": "./assets/favicon.png"
     },
+    "developmentClient": {
+      "silentLaunch": true
+    },
     "plugins": [
       "expo-router",
       [
