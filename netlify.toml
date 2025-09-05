@@ -1,6 +1,6 @@
 [build]
-  # Build command (export static web files)
-  command = "npm run build:web:expo"
+  # Build command (export static web files with webpack)
+  command = "EXPO_PUBLIC_PLATFORM=web npx expo export --platform web --clear"
   
   # Publish directory (we'll use the Expo web output)
   publish = "dist"
