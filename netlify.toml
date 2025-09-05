@@ -1,6 +1,6 @@
 [build]
-  # Build command (export static web files with webpack)
-  command = "EXPO_PUBLIC_PLATFORM=web npx expo export --platform web --clear"
+  # Build command (export static web files with React global fix)
+  command = "node scripts/build-web-with-react-fix.js"
   
   # Publish directory (we'll use the Expo web output)
   publish = "dist"
