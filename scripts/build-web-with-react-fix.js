@@ -27,20 +27,28 @@ try {
   if (fs.existsSync(htmlPath)) {
     let html = fs.readFileSync(htmlPath, 'utf8');
     
-    // Add React global script before the main script
+    // Add React global script in the head
     const reactGlobalScript = `
 <script>
-  // Make React available globally
-  if (typeof window !== 'undefined') {
-    window.React = require('react');
-    window.ReactDOM = require('react-dom');
+  // Make React available globally by loading from CDN
+  if (typeof window !== 'undefined' && !window.React) {
+    // Load React from CDN
+    const reactScript = document.createElement('script');
+    reactScript.src = 'https://unpkg.com/react@18/umd/react.production.min.js';
+    reactScript.crossOrigin = 'anonymous';
+    document.head.appendChild(reactScript);
+    
+    const reactDOMScript = document.createElement('script');
+    reactDOMScript.src = 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js';
+    reactDOMScript.crossOrigin = 'anonymous';
+    document.head.appendChild(reactDOMScript);
   }
 </script>`;
 
-    // Insert the script before the main script
+    // Insert the script in the head section
     html = html.replace(
-      '<script src="/_expo/static/js/web/index-',
-      reactGlobalScript + '\n<script src="/_expo/static/js/web/index-'
+      '</head>',
+      reactGlobalScript + '\n</head>'
     );
 
     // Write the modified HTML back
