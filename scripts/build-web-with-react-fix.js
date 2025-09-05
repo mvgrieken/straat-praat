@@ -16,9 +16,9 @@ try {
     fs.rmSync('dist', { recursive: true, force: true });
   }
 
-  // Run expo export
-  console.log('📦 Running expo export...');
-  execSync('npx expo export --platform web --clear', { stdio: 'inherit' });
+  // Run expo export in development mode for better error messages
+  console.log('📦 Running expo export in development mode...');
+  execSync('NODE_ENV=development npx expo export --platform web --clear', { stdio: 'inherit' });
 
   // Fix React global
   console.log('🔧 Adding React global script...');
@@ -32,15 +32,27 @@ try {
 <script>
   // Make React available globally by loading from CDN
   if (typeof window !== 'undefined' && !window.React) {
-    // Load React from CDN
+    // Load React from CDN (development version for better errors)
     const reactScript = document.createElement('script');
-    reactScript.src = 'https://unpkg.com/react@18/umd/react.production.min.js';
+    reactScript.src = 'https://unpkg.com/react@18/umd/react.development.js';
     reactScript.crossOrigin = 'anonymous';
+    reactScript.onload = function() {
+      console.log('React loaded successfully');
+    };
+    reactScript.onerror = function() {
+      console.error('Failed to load React from CDN');
+    };
     document.head.appendChild(reactScript);
     
     const reactDOMScript = document.createElement('script');
-    reactDOMScript.src = 'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js';
+    reactDOMScript.src = 'https://unpkg.com/react-dom@18/umd/react-dom.development.js';
     reactDOMScript.crossOrigin = 'anonymous';
+    reactDOMScript.onload = function() {
+      console.log('ReactDOM loaded successfully');
+    };
+    reactDOMScript.onerror = function() {
+      console.error('Failed to load ReactDOM from CDN');
+    };
     document.head.appendChild(reactDOMScript);
   }
 </script>`;

@@ -9,6 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { EnvGate } from '@/components/EnvGate';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AuthProvider } from '@/hooks/useAuth';
 import { SettingsProvider } from '@/hooks/useSettings';
 
@@ -58,47 +59,49 @@ function AppSetup() {
 
 export default function RootLayout() {
   return (
-    <EnvGate>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              <SettingsProvider>
-                <AppSetup />
-                <Stack>
-                  <Stack.Screen 
-                    name="(tabs)" 
-                    options={{ headerShown: false }} 
-                  />
-                  <Stack.Screen 
-                    name="auth" 
-                    options={{ headerShown: false }} 
-                  />
-                  <Stack.Screen 
-                    name="onboarding/index" 
-                    options={{ headerShown: false }} 
-                  />
-                  <Stack.Screen
-                    name="quiz/[level]"
-                    options={{
-                      title: 'Quiz',
-                      presentation: 'modal',
-                    }}
-                  />
-                  <Stack.Screen
-                    name="word/[id]"
-                    options={{
-                      title: 'Woorddetails',
-                      presentation: 'modal',
-                    }}
-                  />
-                </Stack>
-                <StatusBar style="auto" />
-              </SettingsProvider>
-            </AuthProvider>
-          </QueryClientProvider>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    </EnvGate>
+    <ErrorBoundary>
+      <EnvGate>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaProvider>
+            <QueryClientProvider client={queryClient}>
+              <AuthProvider>
+                <SettingsProvider>
+                  <AppSetup />
+                  <Stack>
+                    <Stack.Screen 
+                      name="(tabs)" 
+                      options={{ headerShown: false }} 
+                    />
+                    <Stack.Screen 
+                      name="auth" 
+                      options={{ headerShown: false }} 
+                    />
+                    <Stack.Screen 
+                      name="onboarding/index" 
+                      options={{ headerShown: false }} 
+                    />
+                    <Stack.Screen
+                      name="quiz/[level]"
+                      options={{
+                        title: 'Quiz',
+                        presentation: 'modal',
+                      }}
+                    />
+                    <Stack.Screen
+                      name="word/[id]"
+                      options={{
+                        title: 'Woorddetails',
+                        presentation: 'modal',
+                      }}
+                    />
+                  </Stack>
+                  <StatusBar style="auto" />
+                </SettingsProvider>
+              </AuthProvider>
+            </QueryClientProvider>
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </EnvGate>
+    </ErrorBoundary>
   );
 }
