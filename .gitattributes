@@ -1,0 +1,8 @@
+# Enforce LF line endings for Node and shell config files
+*.nvmrc text eol=lf
+*.node-version text eol=lf
+*.sh text eol=lf
+netlify.toml text eol=lf
+
+# Auto-detect line endings for other files
+* text=auto

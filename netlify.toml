@@ -7,7 +7,7 @@
   
   # Environment variables
   [build.environment]
-    NODE_VERSION = "18"
+    NODE_VERSION = "18.20.0"
     NPM_VERSION = "8"
     EXPO_PUBLIC_PLATFORM = "web"
 
