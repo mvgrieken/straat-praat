@@ -4,10 +4,17 @@ const path = require('path');
 
 console.log('🚀 Starting web build with React global fix...');
 
-// Set environment variables
-process.env.EXPO_PUBLIC_PLATFORM = 'web';
-process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://trrsgvxoylhcudtiimvb.supabase.co';
-process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ';
+  // Set environment variables
+  process.env.EXPO_PUBLIC_PLATFORM = 'web';
+  process.env.EXPO_PUBLIC_DEV = 'true';
+  process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://trrsgvxoylhcudtiimvb.supabase.co';
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ';
+  
+  console.log('🔧 Environment variables set:');
+  console.log('  EXPO_PUBLIC_PLATFORM:', process.env.EXPO_PUBLIC_PLATFORM);
+  console.log('  EXPO_PUBLIC_DEV:', process.env.EXPO_PUBLIC_DEV);
+  console.log('  EXPO_PUBLIC_SUPABASE_URL:', process.env.EXPO_PUBLIC_SUPABASE_URL ? 'Set' : 'Not set');
+  console.log('  EXPO_PUBLIC_SUPABASE_ANON_KEY:', process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set');
 
 try {
   // Clean dist directory
@@ -18,7 +25,16 @@ try {
 
   // Run expo export in development mode for better error messages
   console.log('📦 Running expo export in development mode...');
-  execSync('NODE_ENV=development EXPO_PUBLIC_DEV=true npx expo export --platform web --clear', { stdio: 'inherit' });
+  const exportCommand = [
+    'NODE_ENV=development',
+    'EXPO_PUBLIC_DEV=true',
+    'EXPO_PUBLIC_PLATFORM=web',
+    'EXPO_PUBLIC_SUPABASE_URL=https://trrsgvxoylhcudtiimvb.supabase.co',
+    'EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ',
+    'npx expo export --platform web --clear'
+  ].join(' ');
+  
+  execSync(exportCommand, { stdio: 'inherit' });
 
   // Fix React global
   console.log('🔧 Adding React global script...');
