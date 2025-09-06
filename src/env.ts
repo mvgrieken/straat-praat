@@ -20,13 +20,28 @@ export function requireEnv(name: string): string {
 
   // Then try process.env and different extra shapes
   const fromProcessEnv = process.env[name];
+  const fromWindowProcess = typeof window !== 'undefined' && window.process?.env?.[name];
   const fromExpoCamel = extra[camelKey];
   const fromExpoUpper = extra[withoutPrefix];
   const fromExpoExact = extra[name];
 
-  const value = fromExpoCamel || fromExpoUpper || fromExpoExact || fromProcessEnv;
+  const value = fromExpoCamel || fromExpoUpper || fromExpoExact || fromProcessEnv || fromWindowProcess;
 
   if (!value) {
+    console.error('Environment variable lookup failed:', {
+      name,
+      withoutPrefix,
+      camelKey,
+      fromProcessEnv: !!fromProcessEnv,
+      fromWindowProcess: !!fromWindowProcess,
+      fromExpoCamel: !!fromExpoCamel,
+      fromExpoUpper: !!fromExpoUpper,
+      fromExpoExact: !!fromExpoExact,
+      extra: Object.keys(extra),
+      processEnv: typeof process !== 'undefined' ? Object.keys(process.env || {}) : 'undefined',
+      windowProcess: typeof window !== 'undefined' && window.process?.env ? Object.keys(window.process.env) : 'undefined'
+    });
+    
     throw new Error(
       `Missing required environment variable: ${name}\n\n` +
         `To fix this:\n` +

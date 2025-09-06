@@ -43,9 +43,24 @@ try {
   if (fs.existsSync(htmlPath)) {
     let html = fs.readFileSync(htmlPath, 'utf8');
     
-    // Add React global script in the head
+    // Add React global script and environment variables in the head
     const reactGlobalScript = `
 <script>
+  // Set environment variables for runtime
+  window.process = window.process || {};
+  window.process.env = window.process.env || {};
+  window.process.env.EXPO_PUBLIC_PLATFORM = 'web';
+  window.process.env.EXPO_PUBLIC_DEV = 'true';
+  window.process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://trrsgvxoylhcudtiimvb.supabase.co';
+  window.process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ';
+  
+  console.log('Environment variables set:', {
+    EXPO_PUBLIC_PLATFORM: window.process.env.EXPO_PUBLIC_PLATFORM,
+    EXPO_PUBLIC_DEV: window.process.env.EXPO_PUBLIC_DEV,
+    EXPO_PUBLIC_SUPABASE_URL: window.process.env.EXPO_PUBLIC_SUPABASE_URL ? 'Set' : 'Not set',
+    EXPO_PUBLIC_SUPABASE_ANON_KEY: window.process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set'
+  });
+
   // Make React available globally by loading from CDN
   if (typeof window !== 'undefined' && !window.React) {
     // Load React from CDN (development version for better errors)
