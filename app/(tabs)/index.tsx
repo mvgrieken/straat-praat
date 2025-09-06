@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import React, { useMemo, useCallback } from 'react';
-import { View, Text, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
 import { ProgressOverview } from '@/components/ProgressOverview';
 import { QuickActionCard } from '@/components/QuickActionCard';
@@ -125,21 +127,46 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* Header */}
-        <View className="px-6 pt-4 pb-6">
-          <Text 
-            className="text-2xl font-bold mb-2"
-            style={titleStyle}
-          >
-            {greeting}{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ''}!
-          </Text>
-          <Text 
-            className="text-base opacity-70"
-            style={subtitleStyle}
-          >
-            Welkom bij Straat-Praat
-          </Text>
-        </View>
+        {/* Header with Gradient */}
+        <LinearGradient
+          colors={[COLORS.primary[500], COLORS.primary[600]]}
+          style={styles.headerGradient}
+        >
+          <View style={styles.headerContent}>
+            <View style={styles.headerTop}>
+              <View>
+                <Text style={styles.greeting}>
+                  {greeting}{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name}` : ''}! 👋
+                </Text>
+                <Text style={styles.welcomeText}>
+                  Welkom terug bij Straat-Praat
+                </Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.profileButton}
+                onPress={() => router.push('/profile')}
+              >
+                <Ionicons name="person-circle-outline" size={32} color="white" />
+              </TouchableOpacity>
+            </View>
+            
+            {/* Quick Stats */}
+            <View style={styles.quickStats}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>12</Text>
+                <Text style={styles.statLabel}>Woorden geleerd</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>5</Text>
+                <Text style={styles.statLabel}>Dagen streak</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>85%</Text>
+                <Text style={styles.statLabel}>Quiz score</Text>
+              </View>
+            </View>
+          </View>
+        </LinearGradient>
 
         {/* Word of the Day */}
         <View className="px-6 mb-6">
@@ -190,3 +217,55 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = {
+  headerGradient: {
+    paddingTop: 20,
+    paddingBottom: 30,
+    paddingHorizontal: 24,
+  },
+  headerContent: {
+    flex: 1,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 24,
+  },
+  greeting: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 4,
+  },
+  welcomeText: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+  profileButton: {
+    padding: 4,
+  },
+  quickStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+  },
+};
