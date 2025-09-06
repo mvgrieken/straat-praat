@@ -61,7 +61,7 @@ try {
     
     // Add React scripts and environment variables in the head
     const reactGlobalScript = `
-<!-- React CDN Scripts -->
+<!-- React CDN Scripts - Load synchronously -->
 <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 
@@ -96,10 +96,14 @@ try {
     EXPO_PUBLIC_SUPABASE_ANON_KEY: window.process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set'
   });
 
+  // Verify React is loaded immediately
+  console.log('React loaded:', typeof React !== 'undefined');
+  console.log('ReactDOM loaded:', typeof ReactDOM !== 'undefined');
+  
   // Wait for React to be fully loaded before proceeding
   function waitForReact() {
     if (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined') {
-      console.log('React and ReactDOM loaded successfully');
+      console.log('✅ React and ReactDOM loaded successfully');
       return true;
     }
     return false;
@@ -109,22 +113,31 @@ try {
   if (!waitForReact()) {
     // If not loaded, wait for it
     let attempts = 0;
-    const maxAttempts = 50; // 5 seconds max wait
+    const maxAttempts = 100; // 10 seconds max wait
     const checkInterval = setInterval(() => {
       attempts++;
       if (waitForReact()) {
         clearInterval(checkInterval);
+        console.log('✅ React loading completed');
       } else if (attempts >= maxAttempts) {
         clearInterval(checkInterval);
-        console.error('React failed to load within timeout');
+        console.error('❌ React failed to load within timeout');
+      } else {
+        console.log('⏳ Waiting for React... attempt', attempts);
       }
     }, 100);
   }
 
+  // Wait for DOM to be ready
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('📄 DOM Content Loaded');
+    // DOM is ready, React should be available
+  });
+
   // Add fallback error handling for React errors
   window.addEventListener('error', function(event) {
     if (event.error && event.error.message && (event.error.message.includes('Minified React error #130') || event.error.message.includes('Can\\'t find variable: React'))) {
-      console.error('React error detected, showing fallback error page');
+      console.error('❌ React error detected, showing fallback error page');
       document.body.innerHTML = \`
         <div style="padding: 24px; font-family: system-ui, sans-serif; max-width: 900px; margin: 40px auto; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #dc3545;">
           <h1 style="color: #dc3545; margin-bottom: 8px;">Configuration Error</h1>
