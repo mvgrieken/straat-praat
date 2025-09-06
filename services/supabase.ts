@@ -3,10 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 
 import type { Database } from '@/types/supabase';
-import { withRateLimit, RATE_LIMITS } from '@/utils/rateLimiter';
-
-// Import platform-specific secure storage adapter
-import StorageAdapter from './storage/secureStoreAdapter';
 
 // Direct hardcoded configuration - no environment variable complexity
 const SUPABASE_URL = 'https://trrsgvxoylhcudtiimvb.supabase.co';
@@ -19,12 +15,9 @@ console.log('Supabase config:', {
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    storage: StorageAdapter,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: Platform.OS === 'web',
-    // Disable email confirmation for development
-    flowType: 'pkce',
   },
 });
 
