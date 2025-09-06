@@ -52,8 +52,12 @@ try {
   if (fs.existsSync(htmlPath)) {
     let html = fs.readFileSync(htmlPath, 'utf8');
     
-    // Add React global script and environment variables in the head
+    // Add React scripts and environment variables in the head
     const reactGlobalScript = `
+<!-- React CDN Scripts -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
 <script>
   // Set environment variables for runtime (hardcoded for production)
   window.process = window.process || {};
@@ -79,42 +83,17 @@ try {
     EXPO_PUBLIC_SUPABASE_ANON_KEY: window.process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set'
   });
 
-  // Make React available globally by loading from CDN synchronously
-  if (typeof window !== 'undefined' && !window.React) {
-    // Load React from CDN (development version for better errors)
-    const reactScript = document.createElement('script');
-    reactScript.src = 'https://unpkg.com/react@18/umd/react.development.js';
-    reactScript.crossOrigin = 'anonymous';
-    reactScript.async = false; // Load synchronously
-    reactScript.onload = function() {
-      console.log('React loaded successfully');
-      // Load ReactDOM after React is loaded
-      const reactDOMScript = document.createElement('script');
-      reactDOMScript.src = 'https://unpkg.com/react-dom@18/umd/react-dom.development.js';
-      reactDOMScript.crossOrigin = 'anonymous';
-      reactDOMScript.async = false; // Load synchronously
-      reactDOMScript.onload = function() {
-        console.log('ReactDOM loaded successfully');
-        // Ensure React is properly initialized
-        if (window.React && window.ReactDOM) {
-          console.log('React and ReactDOM are ready');
-        }
-      };
-      reactDOMScript.onerror = function() {
-        console.error('Failed to load ReactDOM from CDN');
-      };
-      document.head.appendChild(reactDOMScript);
-    };
-    reactScript.onerror = function() {
-      console.error('Failed to load React from CDN');
-    };
-    document.head.appendChild(reactScript);
+  // Verify React is loaded
+  if (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined') {
+    console.log('React and ReactDOM loaded successfully');
+  } else {
+    console.error('React or ReactDOM not loaded properly');
   }
 
   // Add fallback error handling for React errors
   window.addEventListener('error', function(event) {
-    if (event.error && event.error.message && event.error.message.includes('Minified React error #130')) {
-      console.error('React error #130 detected, showing fallback error page');
+    if (event.error && event.error.message && (event.error.message.includes('Minified React error #130') || event.error.message.includes('Can\\'t find variable: React'))) {
+      console.error('React error detected, showing fallback error page');
       document.body.innerHTML = \`
         <div style="padding: 24px; font-family: system-ui, sans-serif; max-width: 900px; margin: 40px auto; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #dc3545;">
           <h1 style="color: #dc3545; margin-bottom: 8px;">Configuration Error</h1>
