@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-console.log('🚀 Starting web build with React global fix... v1.0.1');
+console.log('🚀 Starting web build with React global fix... v1.0.2');
 
 // Clean dist directory
 if (fs.existsSync('dist')) {
@@ -32,6 +32,38 @@ if (fs.existsSync(htmlPath)) {
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 
 <script>
+  // Global error handler for React errors
+  window.addEventListener('error', function(e) {
+    console.error('Global error caught:', e.message, e.filename, e.lineno);
+    
+    if (e.message.includes('Minified React error #130') || 
+        e.message.includes('Can\\'t find variable: React') ||
+        e.message.includes('React is not defined')) {
+      
+      console.error('React Error #130 detected - showing fallback page');
+      document.body.innerHTML = \`
+        <div style="padding: 20px; font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; text-align: center;">
+          <h1 style="color: #e74c3c;">🚨 App Configuration Error</h1>
+          <p style="color: #666; line-height: 1.6; margin: 20px 0;">
+            Er is een technisch probleem opgetreden. De app kan niet correct worden geladen.
+          </p>
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: left;">
+            <strong>Mogelijke oplossingen:</strong>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+              <li>Ververs de pagina (F5 of Ctrl+R)</li>
+              <li>Wis de browser cache</li>
+              <li>Probeer een andere browser</li>
+              <li>Controleer je internetverbinding</li>
+            </ul>
+          </div>
+          <button onclick="window.location.reload()" style="background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 16px;">
+            🔄 Pagina Verversen
+          </button>
+        </div>
+      \`;
+    }
+  });
+  
   // Verify React is loaded immediately
   console.log('React loaded:', typeof React !== 'undefined');
   console.log('ReactDOM loaded:', typeof ReactDOM !== 'undefined');
@@ -58,6 +90,18 @@ if (fs.existsSync(htmlPath)) {
       } else if (attempts >= maxAttempts) {
         clearInterval(checkInterval);
         console.error('❌ React failed to load within timeout');
+        // Show fallback page if React fails to load
+        document.body.innerHTML = \`
+          <div style="padding: 20px; font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; text-align: center;">
+            <h1 style="color: #e74c3c;">🚨 React Loading Error</h1>
+            <p style="color: #666; line-height: 1.6; margin: 20px 0;">
+              React kon niet worden geladen. Dit kan een netwerkprobleem zijn.
+            </p>
+            <button onclick="window.location.reload()" style="background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 16px;">
+              🔄 Opnieuw Proberen
+            </button>
+          </div>
+        \`;
       } else {
         console.log('⏳ Waiting for React... attempt', attempts);
       }
