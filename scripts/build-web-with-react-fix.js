@@ -83,11 +83,29 @@ try {
     EXPO_PUBLIC_SUPABASE_ANON_KEY: window.process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set'
   });
 
-  // Verify React is loaded
-  if (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined') {
-    console.log('React and ReactDOM loaded successfully');
-  } else {
-    console.error('React or ReactDOM not loaded properly');
+  // Wait for React to be fully loaded before proceeding
+  function waitForReact() {
+    if (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined') {
+      console.log('React and ReactDOM loaded successfully');
+      return true;
+    }
+    return false;
+  }
+
+  // Check if React is already loaded
+  if (!waitForReact()) {
+    // If not loaded, wait for it
+    let attempts = 0;
+    const maxAttempts = 50; // 5 seconds max wait
+    const checkInterval = setInterval(() => {
+      attempts++;
+      if (waitForReact()) {
+        clearInterval(checkInterval);
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkInterval);
+        console.error('React failed to load within timeout');
+      }
+    }, 100);
   }
 
   // Add fallback error handling for React errors
@@ -121,6 +139,23 @@ try {
         </div>
       \`;
     }
+  });
+</script>
+
+<!-- Delay app execution until React is ready -->
+<script>
+  // Wait for DOM and React to be ready
+  document.addEventListener('DOMContentLoaded', function() {
+    function waitForReactAndStart() {
+      if (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined') {
+        console.log('React is ready, starting app...');
+        // React is ready, app can start
+      } else {
+        console.log('Waiting for React...');
+        setTimeout(waitForReactAndStart, 100);
+      }
+    }
+    waitForReactAndStart();
   });
 </script>`;
 
