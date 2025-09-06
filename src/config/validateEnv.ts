@@ -2,10 +2,18 @@ import { z } from 'zod';
 
 // Environment variable candidates with EXPO_PUBLIC_ prefix (Expo SDK 49+)
 const candidates = {
-  SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
-  SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
-  PLATFORM: process.env.EXPO_PUBLIC_PLATFORM,
-  DEV: process.env.EXPO_PUBLIC_DEV,
+  SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL || 
+    (typeof window !== 'undefined' && window.EXPO_PUBLIC_SUPABASE_URL) ||
+    (typeof window !== 'undefined' && window.process?.env?.EXPO_PUBLIC_SUPABASE_URL),
+  SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 
+    (typeof window !== 'undefined' && window.EXPO_PUBLIC_SUPABASE_ANON_KEY) ||
+    (typeof window !== 'undefined' && window.process?.env?.EXPO_PUBLIC_SUPABASE_ANON_KEY),
+  PLATFORM: process.env.EXPO_PUBLIC_PLATFORM || 
+    (typeof window !== 'undefined' && window.EXPO_PUBLIC_PLATFORM) ||
+    (typeof window !== 'undefined' && window.process?.env?.EXPO_PUBLIC_PLATFORM),
+  DEV: process.env.EXPO_PUBLIC_DEV || 
+    (typeof window !== 'undefined' && window.EXPO_PUBLIC_DEV) ||
+    (typeof window !== 'undefined' && window.process?.env?.EXPO_PUBLIC_DEV),
   // Optional: Add other client-side environment variables as needed
   OPENAI_API_KEY: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
   AI_SERVICE_URL: process.env.EXPO_PUBLIC_AI_SERVICE_URL,

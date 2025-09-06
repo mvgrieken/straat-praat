@@ -8,6 +8,13 @@ console.log('🚀 Starting web build with React global fix...');
   const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://trrsgvxoylhcudtiimvb.supabase.co';
   const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ';
   
+  // Force use of Netlify environment variables if available
+  if (process.env.EXPO_PUBLIC_SUPABASE_URL && process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY) {
+    console.log('✅ Using Netlify environment variables');
+  } else {
+    console.log('⚠️ Using hardcoded fallback values');
+  }
+  
   console.log('🔧 Environment variables detected:');
   console.log('  From Netlify EXPO_PUBLIC_SUPABASE_URL:', process.env.EXPO_PUBLIC_SUPABASE_URL ? 'Set' : 'Not set');
   console.log('  From Netlify EXPO_PUBLIC_SUPABASE_ANON_KEY:', process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set');
@@ -59,7 +66,7 @@ try {
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 
 <script>
-  // Set environment variables for runtime (hardcoded for production)
+  // Set environment variables for runtime (from Netlify or hardcoded fallbacks)
   window.process = window.process || {};
   window.process.env = window.process.env || {};
   window.process.env.EXPO_PUBLIC_PLATFORM = 'web';
@@ -75,6 +82,12 @@ try {
     process.env.EXPO_PUBLIC_SUPABASE_URL = '${SUPABASE_URL}';
     process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = '${SUPABASE_ANON_KEY}';
   }
+  
+  // Set them directly on window for immediate access
+  window.EXPO_PUBLIC_SUPABASE_URL = '${SUPABASE_URL}';
+  window.EXPO_PUBLIC_SUPABASE_ANON_KEY = '${SUPABASE_ANON_KEY}';
+  window.EXPO_PUBLIC_PLATFORM = 'web';
+  window.EXPO_PUBLIC_DEV = 'true';
   
   console.log('Environment variables set:', {
     EXPO_PUBLIC_PLATFORM: window.process.env.EXPO_PUBLIC_PLATFORM,
