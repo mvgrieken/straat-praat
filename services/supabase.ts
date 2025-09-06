@@ -2,21 +2,22 @@ import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 
-import { env } from '@/src/config/validateEnv';
 import type { Database } from '@/types/supabase';
 import { withRateLimit, RATE_LIMITS } from '@/utils/rateLimiter';
 
 // Import platform-specific secure storage adapter
 import StorageAdapter from './storage/secureStoreAdapter';
 
-// Use validated environment variables
-const { SUPABASE_URL: supabaseUrl, SUPABASE_ANON_KEY: supabaseAnonKey } = env;
+// Direct hardcoded configuration - no environment variable complexity
+const SUPABASE_URL = 'https://trrsgvxoylhcudtiimvb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ';
+
 console.log('Supabase config:', { 
-  supabaseUrl: `${supabaseUrl.substring(0, 20)}...`, 
-  supabaseAnonKey: `${supabaseAnonKey.substring(0, 20)}...` 
+  supabaseUrl: `${SUPABASE_URL.substring(0, 20)}...`, 
+  supabaseAnonKey: `${SUPABASE_ANON_KEY.substring(0, 20)}...` 
 });
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     storage: StorageAdapter,
     autoRefreshToken: true,
