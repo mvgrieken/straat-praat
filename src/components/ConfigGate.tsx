@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { validateEnv } from '../config/validateEnv';
 
@@ -7,7 +7,37 @@ type Props = {
 };
 
 export function ConfigGate({ children }: Props) {
-  const result = validateEnv();
+  const [result, setResult] = useState<ReturnType<typeof validateEnv> | null>(null);
+
+  useEffect(() => {
+    // Delay validation to ensure window variables are available
+    const timer = setTimeout(() => {
+      try {
+        const validationResult = validateEnv();
+        setResult(validationResult);
+      } catch (error) {
+        setResult({
+          ok: false,
+          values: null,
+          missing: ['EXPO_PUBLIC_SUPABASE_URL', 'EXPO_PUBLIC_SUPABASE_ANON_KEY'],
+          errors: [{ message: 'Environment validation failed' }]
+        });
+      }
+    }, 100); // Small delay to ensure window variables are set
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Show loading state while validating
+  if (result === null) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <Text style={styles.title}>Loading...</Text>
+        </View>
+      </View>
+    );
+  }
 
   if (!result.ok) {
     return (

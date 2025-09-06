@@ -1,22 +1,42 @@
 import { z } from 'zod';
 
+// Function to get environment variables with multiple fallbacks
+function getEnvVar(key: string): string | undefined {
+  // 1. Try process.env first (build time)
+  if (typeof process !== 'undefined' && process.env && process.env[key]) {
+    return process.env[key];
+  }
+  
+  // 2. Try window.EXPO_PUBLIC_* (runtime injection)
+  if (typeof window !== 'undefined' && (window as any)[key]) {
+    return (window as any)[key];
+  }
+  
+  // 3. Try window.process.env (runtime injection)
+  if (typeof window !== 'undefined' && window.process?.env && window.process.env[key]) {
+    return window.process.env[key];
+  }
+  
+  // 4. Hardcoded fallbacks for production
+  const hardcodedValues: Record<string, string> = {
+    'EXPO_PUBLIC_SUPABASE_URL': 'https://trrsgvxoylhcudtiimvb.supabase.co',
+    'EXPO_PUBLIC_SUPABASE_ANON_KEY': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ',
+    'EXPO_PUBLIC_PLATFORM': 'web',
+    'EXPO_PUBLIC_DEV': 'true'
+  };
+  
+  return hardcodedValues[key];
+}
+
 // Environment variable candidates with EXPO_PUBLIC_ prefix (Expo SDK 49+)
 const candidates = {
-  SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL || 
-    (typeof window !== 'undefined' && window.EXPO_PUBLIC_SUPABASE_URL) ||
-    (typeof window !== 'undefined' && window.process?.env?.EXPO_PUBLIC_SUPABASE_URL),
-  SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 
-    (typeof window !== 'undefined' && window.EXPO_PUBLIC_SUPABASE_ANON_KEY) ||
-    (typeof window !== 'undefined' && window.process?.env?.EXPO_PUBLIC_SUPABASE_ANON_KEY),
-  PLATFORM: process.env.EXPO_PUBLIC_PLATFORM || 
-    (typeof window !== 'undefined' && window.EXPO_PUBLIC_PLATFORM) ||
-    (typeof window !== 'undefined' && window.process?.env?.EXPO_PUBLIC_PLATFORM),
-  DEV: process.env.EXPO_PUBLIC_DEV || 
-    (typeof window !== 'undefined' && window.EXPO_PUBLIC_DEV) ||
-    (typeof window !== 'undefined' && window.process?.env?.EXPO_PUBLIC_DEV),
+  SUPABASE_URL: getEnvVar('EXPO_PUBLIC_SUPABASE_URL'),
+  SUPABASE_ANON_KEY: getEnvVar('EXPO_PUBLIC_SUPABASE_ANON_KEY'),
+  PLATFORM: getEnvVar('EXPO_PUBLIC_PLATFORM'),
+  DEV: getEnvVar('EXPO_PUBLIC_DEV'),
   // Optional: Add other client-side environment variables as needed
-  OPENAI_API_KEY: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
-  AI_SERVICE_URL: process.env.EXPO_PUBLIC_AI_SERVICE_URL,
+  OPENAI_API_KEY: getEnvVar('EXPO_PUBLIC_OPENAI_API_KEY'),
+  AI_SERVICE_URL: getEnvVar('EXPO_PUBLIC_AI_SERVICE_URL'),
 };
 
 // Zod schema for validation
@@ -51,10 +71,10 @@ export function validateEnv() {
     ok: parsed.success && missing.length === 0,
     values: parsed.success ? parsed.data : null,
     missing,
-    errors: parsed.success ? [] : parsed.error?.errors || [],
+    errors: parsed.success ? [] : parsed.error?.issues?.map(issue => ({ message: issue.message })) || [],
     message: parsed.success && missing.length === 0
       ? ''
-      : `Environment validation failed. Missing: ${missing.join(', ')}. Errors: ${parsed.success ? 'none' : parsed.error?.errors.map(e => e.message).join(', ')}`,
+      : `Environment validation failed. Missing: ${missing.join(', ')}. Errors: ${parsed.success ? 'none' : parsed.error?.issues?.map(e => e.message).join(', ')}`,
   };
 }
 
