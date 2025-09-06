@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-console.log('🚀 Starting web build with React global fix... v1.0.2');
+console.log('🚀 Starting web build with React global fix... v1.0.3');
 
 // Clean dist directory
 if (fs.existsSync('dist')) {
@@ -38,7 +38,8 @@ if (fs.existsSync(htmlPath)) {
     
     if (e.message.includes('Minified React error #130') || 
         e.message.includes('Can\\'t find variable: React') ||
-        e.message.includes('React is not defined')) {
+        e.message.includes('React is not defined') ||
+        e.message.includes('NotFoundError: The object can not be found here')) {
       
       console.error('React Error #130 detected - showing fallback page');
       document.body.innerHTML = \`
