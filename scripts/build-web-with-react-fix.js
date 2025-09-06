@@ -8,6 +8,12 @@ console.log('🚀 Starting web build with React global fix...');
   const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://trrsgvxoylhcudtiimvb.supabase.co';
   const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ';
   
+  console.log('🔧 Environment variables detected:');
+  console.log('  From Netlify EXPO_PUBLIC_SUPABASE_URL:', process.env.EXPO_PUBLIC_SUPABASE_URL ? 'Set' : 'Not set');
+  console.log('  From Netlify EXPO_PUBLIC_SUPABASE_ANON_KEY:', process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set');
+  console.log('  Using SUPABASE_URL:', SUPABASE_URL);
+  console.log('  Using SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY.substring(0, 20) + '...');
+  
   process.env.EXPO_PUBLIC_PLATFORM = 'web';
   process.env.EXPO_PUBLIC_DEV = 'true';
   process.env.EXPO_PUBLIC_SUPABASE_URL = SUPABASE_URL;
@@ -73,31 +79,70 @@ try {
     EXPO_PUBLIC_SUPABASE_ANON_KEY: window.process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set'
   });
 
-  // Make React available globally by loading from CDN
+  // Make React available globally by loading from CDN synchronously
   if (typeof window !== 'undefined' && !window.React) {
     // Load React from CDN (development version for better errors)
     const reactScript = document.createElement('script');
     reactScript.src = 'https://unpkg.com/react@18/umd/react.development.js';
     reactScript.crossOrigin = 'anonymous';
+    reactScript.async = false; // Load synchronously
     reactScript.onload = function() {
       console.log('React loaded successfully');
+      // Load ReactDOM after React is loaded
+      const reactDOMScript = document.createElement('script');
+      reactDOMScript.src = 'https://unpkg.com/react-dom@18/umd/react-dom.development.js';
+      reactDOMScript.crossOrigin = 'anonymous';
+      reactDOMScript.async = false; // Load synchronously
+      reactDOMScript.onload = function() {
+        console.log('ReactDOM loaded successfully');
+        // Ensure React is properly initialized
+        if (window.React && window.ReactDOM) {
+          console.log('React and ReactDOM are ready');
+        }
+      };
+      reactDOMScript.onerror = function() {
+        console.error('Failed to load ReactDOM from CDN');
+      };
+      document.head.appendChild(reactDOMScript);
     };
     reactScript.onerror = function() {
       console.error('Failed to load React from CDN');
     };
     document.head.appendChild(reactScript);
-    
-    const reactDOMScript = document.createElement('script');
-    reactDOMScript.src = 'https://unpkg.com/react-dom@18/umd/react-dom.development.js';
-    reactDOMScript.crossOrigin = 'anonymous';
-    reactDOMScript.onload = function() {
-      console.log('ReactDOM loaded successfully');
-    };
-    reactDOMScript.onerror = function() {
-      console.error('Failed to load ReactDOM from CDN');
-    };
-    document.head.appendChild(reactDOMScript);
   }
+
+  // Add fallback error handling for React errors
+  window.addEventListener('error', function(event) {
+    if (event.error && event.error.message && event.error.message.includes('Minified React error #130')) {
+      console.error('React error #130 detected, showing fallback error page');
+      document.body.innerHTML = \`
+        <div style="padding: 24px; font-family: system-ui, sans-serif; max-width: 900px; margin: 40px auto; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #dc3545;">
+          <h1 style="color: #dc3545; margin-bottom: 8px;">Configuration Error</h1>
+          <p style="color: #6c757d; margin-bottom: 24px;">De app mist verplichte environment variabelen.</p>
+          
+          <div style="margin-bottom: 24px; background: #ffffff; padding: 16px; border-radius: 8px;">
+            <h2 style="color: #343a40; margin-bottom: 12px;">Ontbrekende variabelen:</h2>
+            <div style="font-family: monospace; background: #f8f9fa; padding: 4px; border-radius: 4px; color: #e83e8c; margin: 2px 0;">EXPO_PUBLIC_SUPABASE_URL</div>
+            <div style="font-family: monospace; background: #f8f9fa; padding: 4px; border-radius: 4px; color: #e83e8c; margin: 2px 0;">EXPO_PUBLIC_SUPABASE_ANON_KEY</div>
+          </div>
+
+          <div style="margin-bottom: 24px; background: #ffffff; padding: 16px; border-radius: 8px;">
+            <h2 style="color: #343a40; margin-bottom: 12px;">Netlify deployment:</h2>
+            <div style="font-size: 14px; color: #495057; margin-bottom: 8px; line-height: 20px;">1. Ga naar je Netlify site dashboard</div>
+            <div style="font-size: 14px; color: #495057; margin-bottom: 8px; line-height: 20px;">2. Site settings → Build & deploy → Environment variables</div>
+            <div style="font-size: 14px; color: #495057; margin-bottom: 8px; line-height: 20px;">3. Voeg de ontbrekende variabelen toe (met EXPO_PUBLIC_ prefix)</div>
+            <div style="font-size: 14px; color: #495057; margin-bottom: 8px; line-height: 20px;">4. Clear cache and redeploy</div>
+          </div>
+
+          <div style="background: #fff3cd; border-color: #ffeaa7; border: 1px solid; border-radius: 8px; padding: 16px; margin-top: 16px;">
+            <div style="font-size: 14px; color: #856404; line-height: 20px;">
+              ⚠️ Let op: Gebruik alleen publieke client-side variabelen. Server secrets (zoals SERVICE_ROLE_KEY) mogen nooit in client code.
+            </div>
+          </div>
+        </div>
+      \`;
+    }
+  });
 </script>`;
 
     // Insert the script in the head section
