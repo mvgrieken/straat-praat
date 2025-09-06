@@ -4,9 +4,9 @@ const path = require('path');
 
 console.log('🚀 Starting web build with React global fix...');
 
-  // Set environment variables (hardcoded for production)
-  const SUPABASE_URL = 'https://trrsgvxoylhcudtiimvb.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ';
+  // Set environment variables from Netlify environment or defaults
+  const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://trrsgvxoylhcudtiimvb.supabase.co';
+  const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ';
   
   process.env.EXPO_PUBLIC_PLATFORM = 'web';
   process.env.EXPO_PUBLIC_DEV = 'true';

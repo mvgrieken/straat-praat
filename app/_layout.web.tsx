@@ -6,7 +6,7 @@ import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { EnvGate } from '@/components/EnvGate';
+import { ConfigGate } from '@/src/components/ConfigGate';
 import { AuthProvider } from '@/hooks/useAuth';
 import { SettingsProvider } from '@/hooks/useSettings';
 
@@ -47,7 +47,7 @@ function AppSetup() {
 
 export default function RootLayout() {
   return (
-    <EnvGate>
+    <ConfigGate>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
@@ -86,6 +86,6 @@ export default function RootLayout() {
           </AuthProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
-    </EnvGate>
+    </ConfigGate>
   );
 }

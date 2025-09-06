@@ -58,9 +58,24 @@ CI=1 ADBLOCK=1 HUSKY=0 npm install --no-audit --no-fund --legacy-peer-deps
 
 4. Configureer environment variables:
 ```bash
-cp .env.example .env.local
+# Kopieer het voorbeeld bestand
+cp .env.local.example .env.local
+
 # Vul je Supabase credentials in
+# Zie .env.local.example voor alle vereiste variabelen
 ```
+
+### Environment Variables Setup
+
+**Verplichte variabelen:**
+- `EXPO_PUBLIC_SUPABASE_URL` - Je Supabase project URL
+- `EXPO_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key (publiek)
+
+**Belangrijke opmerkingen:**
+- Gebruik altijd de `EXPO_PUBLIC_` prefix voor client-side variabelen
+- Alleen publieke keys mogen in client code (zoals `SUPABASE_ANON_KEY`)
+- **NOOIT** server secrets plaatsen (zoals `SUPABASE_SERVICE_ROLE_KEY`)
+- Zie `.env.local.example` voor complete lijst en uitleg
 
 5. Start de development server:
 ```bash
@@ -108,7 +123,28 @@ straat-praat/
 ## 🌐 Deployment
 
 ### Web (Netlify)
+
 De app is automatisch gedeployed naar [straat-praat.netlify.app](https://straat-praat.netlify.app)
+
+**Netlify Environment Variables Setup:**
+
+1. Ga naar je Netlify site dashboard
+2. Site settings → Build & deploy → Environment variables
+3. Voeg de volgende variabelen toe (zonder quotes):
+
+```
+EXPO_PUBLIC_SUPABASE_URL = https://your-project-id.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+EXPO_PUBLIC_PLATFORM = web
+EXPO_PUBLIC_DEV = false
+```
+
+4. Clear cache and redeploy
+
+**Belangrijk:**
+- Gebruik de exacte `EXPO_PUBLIC_` prefix
+- Alleen publieke client-side variabelen
+- NOOIT server secrets in Netlify environment variables
 
 ### Mobile (EAS Build)
 ```bash
@@ -118,11 +154,13 @@ npm run build
 
 ## 🔐 Environment Variables
 
-### Client-side (veilig)
+### Client-side (veilig voor publiek)
 - `EXPO_PUBLIC_SUPABASE_URL` - Supabase project URL
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
+- `EXPO_PUBLIC_PLATFORM` - Platform (web/ios/android)
+- `EXPO_PUBLIC_DEV` - Development mode (true/false)
 
-### Server-side (geheim)  
+### Server-side (geheim - NOOIT in client code)
 - `SUPABASE_SERVICE_ROLE_KEY` - Voor admin operaties
 - `OPENAI_API_KEY` - OpenAI API key
 - `ANTHROPIC_API_KEY` - Anthropic API key
