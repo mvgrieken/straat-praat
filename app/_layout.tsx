@@ -8,10 +8,10 @@ import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { ConfigGate } from '@/src/components/ConfigGate';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AuthProvider } from '@/hooks/useAuth';
 import { SettingsProvider } from '@/hooks/useSettings';
+import { ConfigGate } from '@/src/components/ConfigGate';
 
 import '../global.css';
 

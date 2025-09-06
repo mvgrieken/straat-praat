@@ -71,7 +71,7 @@ export default function QuizPlayScreen() {
     if (questions && questions.length > 0 && !sessionId) {
       startQuizMutation.mutate();
     }
-  }, [questions, sessionId]);
+  }, [questions, sessionId, startQuizMutation]);
 
   // Submit answer mutation
   const submitAnswerMutation = useMutation({
@@ -92,7 +92,7 @@ export default function QuizPlayScreen() {
       );
     },
     onSuccess: (isCorrect) => {
-      const currentQuestion = questions![currentQuestionIndex];
+      const currentQuestion = questions?.[currentQuestionIndex];
       if (!currentQuestion) return;
       
       const responseTime = Date.now() - questionStartTime;

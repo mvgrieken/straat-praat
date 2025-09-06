@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Alert, Modal, StyleSheet, ActivityIndicator, Image } from 'react-native';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -23,9 +23,9 @@ export default function MFASetupModal({ visible, onClose, onSuccess }: MFASetupM
     if (visible && step === 'setup') {
       initializeMFASetup();
     }
-  }, [visible, step]);
+  }, [visible, step, initializeMFASetup]);
 
-  const initializeMFASetup = async () => {
+  const initializeMFASetup = useCallback(async () => {
     if (!user?.id || !user?.email) {
       Alert.alert('Fout', 'Gebruiker niet gevonden');
       return;
@@ -48,7 +48,7 @@ export default function MFASetupModal({ visible, onClose, onSuccess }: MFASetupM
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, user?.email, onClose]);
 
   const handleVerification = async () => {
     if (!user?.id || !user?.email || !verificationCode.trim()) {

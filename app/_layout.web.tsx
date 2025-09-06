@@ -6,9 +6,9 @@ import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { ConfigGate } from '@/src/components/ConfigGate';
 import { AuthProvider } from '@/hooks/useAuth';
 import { SettingsProvider } from '@/hooks/useSettings';
+import { ConfigGate } from '@/src/components/ConfigGate';
 
 import '../global.css';
 

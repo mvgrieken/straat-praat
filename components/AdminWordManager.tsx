@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -52,9 +52,9 @@ export default function AdminWordManager() {
 
   useEffect(() => {
     loadWords();
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery, loadWords]);
 
-  const loadWords = async () => {
+  const loadWords = useCallback(async () => {
     try {
       setLoading(true);
       const response = await WordService.getWords({
@@ -72,7 +72,7 @@ export default function AdminWordManager() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCategory, searchQuery]);
 
   const handleAddWord = async () => {
     try {
