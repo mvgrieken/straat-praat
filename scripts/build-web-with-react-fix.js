@@ -4,11 +4,14 @@ const path = require('path');
 
 console.log('🚀 Starting web build with React global fix...');
 
-  // Set environment variables
+  // Set environment variables (hardcoded for production)
+  const SUPABASE_URL = 'https://trrsgvxoylhcudtiimvb.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ';
+  
   process.env.EXPO_PUBLIC_PLATFORM = 'web';
   process.env.EXPO_PUBLIC_DEV = 'true';
-  process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://trrsgvxoylhcudtiimvb.supabase.co';
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ';
+  process.env.EXPO_PUBLIC_SUPABASE_URL = SUPABASE_URL;
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = SUPABASE_ANON_KEY;
   
   console.log('🔧 Environment variables set:');
   console.log('  EXPO_PUBLIC_PLATFORM:', process.env.EXPO_PUBLIC_PLATFORM);
@@ -25,14 +28,14 @@ try {
 
   // Run expo export in development mode for better error messages
   console.log('📦 Running expo export in development mode...');
-  const exportCommand = [
-    'NODE_ENV=development',
-    'EXPO_PUBLIC_DEV=true',
-    'EXPO_PUBLIC_PLATFORM=web',
-    'EXPO_PUBLIC_SUPABASE_URL=https://trrsgvxoylhcudtiimvb.supabase.co',
-    'EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ',
-    'npx expo export --platform web --clear'
-  ].join(' ');
+          const exportCommand = [
+            'NODE_ENV=development',
+            `EXPO_PUBLIC_DEV=true`,
+            `EXPO_PUBLIC_PLATFORM=web`,
+            `EXPO_PUBLIC_SUPABASE_URL=${SUPABASE_URL}`,
+            `EXPO_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}`,
+            'npx expo export --platform web --clear'
+          ].join(' ');
   
   execSync(exportCommand, { stdio: 'inherit' });
 
@@ -46,13 +49,22 @@ try {
     // Add React global script and environment variables in the head
     const reactGlobalScript = `
 <script>
-  // Set environment variables for runtime
+  // Set environment variables for runtime (hardcoded for production)
   window.process = window.process || {};
   window.process.env = window.process.env || {};
   window.process.env.EXPO_PUBLIC_PLATFORM = 'web';
   window.process.env.EXPO_PUBLIC_DEV = 'true';
-  window.process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://trrsgvxoylhcudtiimvb.supabase.co';
-  window.process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRycnNndnhveWxoY3VkdGlpbXZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxOTQ3OTIsImV4cCI6MjA3MTc3MDc5Mn0.PG4cDu5UVUwE4Kp7NejdTcxdJDypkpdpQSO97Ipl8kQ';
+  window.process.env.EXPO_PUBLIC_SUPABASE_URL = '${SUPABASE_URL}';
+  window.process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = '${SUPABASE_ANON_KEY}';
+  
+  // Also set them on the global process object for compatibility
+  if (typeof process !== 'undefined') {
+    process.env = process.env || {};
+    process.env.EXPO_PUBLIC_PLATFORM = 'web';
+    process.env.EXPO_PUBLIC_DEV = 'true';
+    process.env.EXPO_PUBLIC_SUPABASE_URL = '${SUPABASE_URL}';
+    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = '${SUPABASE_ANON_KEY}';
+  }
   
   console.log('Environment variables set:', {
     EXPO_PUBLIC_PLATFORM: window.process.env.EXPO_PUBLIC_PLATFORM,
