@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-console.log('🚀 Starting web build with React global fix...');
+console.log('🚀 Starting web build with React global fix... v1.0.1');
 
 // Clean dist directory
 if (fs.existsSync('dist')) {
